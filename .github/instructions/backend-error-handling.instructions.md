@@ -7,11 +7,20 @@ applyTo: "backend/src/libs/**/*.py, backend/app/**/*.py"
 
 Structured error handling required. Silent failures forbidden.
 
+> **Quick reference**
+> | Concern | Rule |
+> |---------|------|
+> | Domain errors | Raise `DomainError` subclass with `ErrorCode` enum value |
+> | Propagation | Let `DomainError` reach middleware — never catch and re-raise as `HTTPException` |
+> | Error envelope | `{"error": {"code": ..., "message": ..., "details": {}}}` |
+> | Logging | `logger.error(..., exc_info=True)` on all exception paths |
+> | Correlation | Emit a single correlation ID (also used as request ID) per request |
+
 ## MUST
 
 - Use `DomainError` (or subclass) with stable `code` values for domain failures
 - Map unhandled exceptions at API boundary to sanitized error envelope (never raw traceback)
-- Emit correlation/request ID per request
+- Emit a single correlation ID (also used as request ID) per request for distributed tracing
 
 ## DomainError -> HTTP Status Mapping
 

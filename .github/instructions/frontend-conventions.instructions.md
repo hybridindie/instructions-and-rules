@@ -10,7 +10,7 @@ applyTo: "frontend/**"
 - Zustand stores only for client state (auth, analytics, platforms, content)
 - Store actions are pure wrappers over service calls; side effects isolated
 - No global mutable singletons outside Zustand
-- No additional state management libraries without explicit justification
+- No additional state management libraries unless approved via a documented architecture decision record (ADR) citing performance or scalability reasons
 
 ## API Integration
 
@@ -43,8 +43,10 @@ applyTo: "frontend/**"
 
 ## Testing
 
-- Security-critical components (auth, session management): 90%+ coverage (#319)
-- Zustand stores: 70%+ coverage (#333)
+### Coverage Targets
+
+- Security-critical components (auth, session management): 90%+ line coverage (#319)
+- Zustand stores: 70%+ line coverage (#333)
 - Test stack: Vitest + MSW + React Testing Library; Playwright for E2E
 
 ### Suite Health (BLOCKING — no exceptions)

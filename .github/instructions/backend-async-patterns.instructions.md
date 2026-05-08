@@ -7,6 +7,15 @@ applyTo: "backend/src/libs/**/*.py, backend/app/**/*.py"
 
 All backend services must use async/await with Pydantic-typed interfaces.
 
+> **Quick reference**
+> | Concern | Rule |
+> |---------|------|
+> | I/O clients | Inject all; no global singletons |
+> | Blocking I/O | Forbidden inside `async def`; wrap legacy with executor + comment |
+> | Timeouts | Required on all external I/O (HTTP/DB/cache/message bus) |
+> | Check-and-mutate | DB-level atomic ops only (`ON CONFLICT`, `col = col + 1`) |
+> | Background tasks | Native asyncio + pgmq/LISTEN/NOTIFY; no Celery/Redis/Valkey without AWG sign-off |
+
 ## MUST
 
 - Inject DB/cache/network clients; prohibit global connection singletons
@@ -15,7 +24,7 @@ All backend services must use async/await with Pydantic-typed interfaces.
 - No shared mutable state across requests - stateless functions or DI only
 - External I/O (HTTP/DB/cache/message bus) must set explicit timeouts
 - Background processing: native asyncio + pgmq for queues + LISTEN/NOTIFY for real-time
-- No Celery/Redis/Valkey without AWG approval
+- No Celery/Redis/Valkey without explicit sign-off from the Architecture Working Group (AWG) — raise the request in the architecture Slack channel or as a GitHub discussion before introducing these dependencies
 - Batch-process large datasets asynchronously — no synchronous loops over unbounded collections (#326)
 - Multi-step workflows that must be atomic: use outbox/saga pattern, not fire-and-forget (#336)
 

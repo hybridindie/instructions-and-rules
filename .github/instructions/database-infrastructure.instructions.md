@@ -5,7 +5,17 @@ applyTo: "supabase/**, backend/src/libs/**/repositories/**, backend/src/libs/**/
 
 # PostgreSQL-Only Infrastructure (Article V)
 
-PostgreSQL 17 is the single infrastructure component for all data and messaging.
+PostgreSQL 17, along with its extensions (Supabase, pgvector, pgmq), is the primary infrastructure component for all data and messaging.
+
+> **Quick reference**
+> | Concern | Rule |
+> |---------|------|
+> | Business logic access | Repository pattern only — no direct SQL in services |
+> | DB client | `app/core/dependencies.get_supabase` |
+> | New repos | `src/libs/<service>/repository.py` (not `app/repositories/`) |
+> | Migrations | `supabase/migrations/*.sql` |
+> | Ephemeral data | UNLOGGED tables (cache, sessions, rate limits) |
+> | Real-time events | LISTEN/NOTIFY — keep payloads under 8KB |
 
 ## Extensions & Features
 
@@ -14,7 +24,7 @@ PostgreSQL 17 is the single infrastructure component for all data and messaging.
 - **LISTEN/NOTIFY** - Real-time event streaming (8KB payload limit)
 - **HSTORE + UNLOGGED tables** - Cache, sessions, rate limiting
 
-## MUST
+## Database Operations
 
 - Use repository pattern to isolate database-specific logic from business logic
 - No direct SQL in business logic - use Supabase client or repository abstraction
@@ -24,7 +34,7 @@ PostgreSQL 17 is the single infrastructure component for all data and messaging.
 - New migrations in `supabase/migrations/*.sql`
 - Keep LISTEN/NOTIFY payloads under 8KB; store larger data in tables and send keys
 
-## Supabase Repositories
+## Repository Rules
 
 New repositories belong in their service library (`src/libs/<service>/repository.py` or `src/libs/<service>/repositories/`), not in `app/repositories/`.
 

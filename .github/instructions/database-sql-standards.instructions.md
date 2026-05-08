@@ -5,6 +5,18 @@ applyTo: "supabase/migrations/**, supabase/seed.sql"
 
 # SQL Standards: Schema Design & Migrations
 
+> **Naming quick reference**
+> | Column type | Convention | Example |
+> |-------------|------------|---------|
+> | FK | `_id` suffix, singular parent | `creator_id` |
+> | Timestamp | `_at` suffix | `created_at` |
+> | URL | `_url` suffix | `avatar_url` |
+> | Boolean | `is_` or `has_` prefix | `is_active` |
+> | Count | `_count` suffix | `follower_count` |
+> | JSONB | `_data` or `_metadata` suffix | `metrics_data` |
+> | CHECK constraint | `{table}_{column}_check` | `creators_status_check` |
+> | Index | `idx_{table}_{columns}` | `idx_creators_agency_id` |
+
 ## Data Types
 
 MUST:
@@ -69,7 +81,7 @@ MUST:
 
 MUST:
 - Validate inputs at the top of every RPC function — `RAISE EXCEPTION ... USING ERRCODE = '22023'` for NULL, empty, zero, or negative values that would cause division-by-zero or silent corruption
-- Restrict `EXECUTE` grants to `service_role` unless the RPC is explicitly designed for client-side use. Default: `REVOKE ALL FROM PUBLIC, anon, authenticated; GRANT EXECUTE TO service_role;`
+- Restrict `EXECUTE` grants to `service_role` unless the RPC is documented and tested for client-side use cases (e.g., called directly from the browser/anon client in production). Default: `REVOKE ALL FROM PUBLIC, anon, authenticated; GRANT EXECUTE TO service_role;`
 - When `DROP FUNCTION` + `CREATE FUNCTION` is used, re-apply all grants and ownership in the same migration — dropping a function drops its privileges
 
 ## UNLOGGED Tables

@@ -19,7 +19,7 @@ ANTI-PATTERNS:
 
 | Gate | Tool | Blocks Merge On |
 |------|------|-----------------|
-| Workflow Pipeline | `.claude/rules/workflow.md` | Skipped step (no issue, test-after-code, unaddressed PR comment, bundled drive-by fix) |
+| Workflow Pipeline | `.claude/rules/workflow.md` | Skipped step (no associated GitHub issue exists, test-after-code, unaddressed PR comment, bundled drive-by fix) |
 | Constitution Checker | `backend/scripts/check-constitution.py` | Structure violations |
 | Test Coverage | CI coverage report | Below tier minimums |
 | Suite Health | `.claude/hooks/check-no-skipped-tests.sh` + CI | Any `@pytest.mark.skip`, `xfail`, `it.skip`, `test.skip`, `describe.skip`, `.todo`, `xit`, `xdescribe`, or failing/erroring test in Vitest or pytest |
@@ -31,16 +31,20 @@ ANTI-PATTERNS:
 
 ## PR Acceptance Checklist
 
+> **Priority groups** (resolve blockers in order):
+> 1. **Suite health** — zero failures, zero unconditional skips (Articles III, VIII)
+> 2. **Architecture** — library isolation, DI, async (Articles I, II, V)
+> 3. **Quality** — coverage tiers, structured errors, OpenAPI docs (Articles III, IV, VI)
+> 4. **Security & CI** — auth, secrets, lint, type check (Articles VII, VIII)
+> 5. **Traceability** — spec references, issue linked (Articles IX, Workflow)
+
 - [ ] Workflow: Issue exists and is referenced (`closes #N`); test was
       red before the fix; preflight clean; review comments resolved or
       replied to (see `.claude/rules/workflow.md`)
 - [ ] Article I: Library isolation (no business logic in routes)
 - [ ] Article II: Services testable in isolation with DI
 - [ ] Article III: Failing test first & coverage per tier
-- [ ] Article III: Zero skipped, xfailed, or failing tests in the suite
-      (backend `pytest` AND frontend `vitest` must be fully green; any
-      conditional skip must be `skipif` gated on a real environmental
-      precondition, never a placeholder for "not implemented")
+- [ ] Article III: Zero unconditional skips (no `@pytest.mark.skip`, `xfail`, or equivalent), zero failing tests. Conditional skips (`skipif` gated on a real environmental precondition) are permitted; placeholder skips for 'not implemented' are not. Backend `pytest` AND frontend `vitest` must be fully green.
 - [ ] Article IV: Structured error mapping with DomainError
 - [ ] Article V: Async & no blocking/global state
 - [ ] Article VI: OpenAPI documented (Pydantic models)

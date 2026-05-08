@@ -5,11 +5,20 @@ applyTo: "backend/src/libs/**/*.py, backend/app/**/*.py"
 
 # Architecture: Library-First & Service Isolation (Articles I & II)
 
+> **Quick reference**
+> | Concern | Rule |
+> |---------|------|
+> | Library location | `backend/src/libs/<service_name>` |
+> | Route responsibility | Parse input → inject deps → call service → return result |
+> | Service responsibility | Business logic only; no FastAPI/HTTP imports |
+> | Prompt source | MLflow Prompt Registry (constants = fallback only) |
+> | Return types | Typed Pydantic models — never `dict[str, Any]` |
+
 ## Library-First (Article I)
 
 MUST:
 - Feature libraries live under `backend/src/libs/<service_name>` with `models.py`, `service.py`, `errors.py`
-- FastAPI routes are delegation only - no domain branching logic
+- FastAPI routes must only delegate requests to service layer functions without implementing branching logic
 - Expose pure functions; no side effects at import time
 - `src/libs/` modules MUST NOT import from `app.*` — use dependency injection or protocols (#323)
 

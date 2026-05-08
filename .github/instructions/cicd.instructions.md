@@ -7,10 +7,10 @@ applyTo: ".github/workflows/**, pyproject.toml, requirements.txt, package.json, 
 
 ## MUST
 
-- Enforce CI gates: lint, type check, tests, coverage, security scan, dependency audit
-- Fail pipeline on coverage regression or high severity CVE
-- Deterministic build artifacts (pin dependencies / lockfiles committed)
-- Coverage diff per PR (line + branch for changed files)
+1. **Gate integrity** — Enforce CI gates in this order: lint → type check → tests → coverage → security scan → dependency audit. All gates must pass before merge.
+2. **Coverage** — Fail pipeline on coverage regression; post a coverage diff per PR (line + branch for changed files).
+3. **Security** — Fail pipeline on any CVE with a CVSS score of 7.0 or higher.
+4. **Reproducibility** — Deterministic build artifacts: pin dependencies and commit lockfiles.
 
 ## SHOULD
 

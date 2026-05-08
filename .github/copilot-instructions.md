@@ -12,7 +12,13 @@ Scope: This document is self-contained for GitHub Copilot; the only shared autho
 
 ---
 ## 1. Core Mission
-InfluencerSync is a creator growth acceleration platform undergoing a strict constitution‑aligned refactor. All new or refactored code MUST comply with the Constitutional Articles below. Copilot suggestions must bias toward modular, test‑first, async, secure, and traceable implementations.
+Baseline for Python / TypeScript in an ML setting. All new or refactored code MUST comply with the Constitutional Articles below, grouped by concern:
+
+- **Structure** (I–II): library-first, service isolation
+- **Quality** (III, VIII): TDD, CI/CD determinism
+- **Reliability** (IV–V): structured errors, async-first
+- **API & Security** (VI–VII): OpenAPI docs, auth/encryption
+- **Traceability** (IX): inline Article references in non-trivial logic
 
 ---
 ## 2. Constitutional Articles (Enforce in Suggestions)
@@ -126,7 +132,7 @@ No domain calculations inline; ALWAYS delegate to a library function.
 ---
 ## 12. Suggestion Do / Do Not
 Do:
-- Propose test first (failing) before implementation.
+- For all new functionality or refactored code, propose a failing test first before implementation.
 - Reference Articles in critical comments.
 - Keep functions small, pure, and side‑effect minimal.
 - Use dependency injection patterns.

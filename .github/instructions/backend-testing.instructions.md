@@ -5,7 +5,15 @@ applyTo: "backend/**/*.py"
 
 # Testing: TDD Mandate (Article III)
 
-Code is only written after failing tests are defined. Add regression tests for any bug found.
+Code is only written after tests are defined and initially fail due to missing implementation. Add regression tests for any bug found.
+
+> **Rule priority (highest → lowest)**
+> 1. Suite must be green and deterministic (zero failures, zero unconditional skips)
+> 2. Coverage tier minimums must be met before merge
+> 3. Test authoring order: Contract → Integration → E2E → Unit
+> 4. Fixtures and mocks must match real domain shapes
+>
+> In a conflict, higher-priority rules win. For example, a determinism fix takes precedence over reaching a coverage target.
 
 ## Tiered Coverage Requirements
 
@@ -73,7 +81,10 @@ normalises broken state. These rules exist to keep the signal trustworthy.
 - **Determinism is mandatory.** Any test that depends on wall-clock time,
   randomness, or external I/O must inject a deterministic provider
   (`Clock`, `RandomProvider`, `FakeRandomProvider`, `respx`, etc.). A
-  passing-95%-of-the-time test is a failing test with extra steps. Past
+  passing-95%-of-the-time test is a failing test with extra steps. If a
+  test intermittently fails due to an external dependency, isolate and mock
+  that dependency so the test produces a consistent result — do not leave
+  flaky tests in the suite. Past
   bugs: `mock_send_email` 5% random failure (#901-series), hardcoded
   `token_expires_at` that rotted when wall clock advanced, `asyncio.sleep`
   in tests (#332).

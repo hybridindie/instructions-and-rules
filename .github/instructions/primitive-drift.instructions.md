@@ -27,9 +27,11 @@ applyTo: ".claude/rules/**, .github/instructions/**"
 
 ## When You Edit One File
 
-Always update the mirror in the same edit. The body content (everything after the frontmatter `---` block) must stay identical between the two files. Do not change the frontmatter of the mirror — only update the body.
+When editing either file in a mirror pair, follow these steps in order:
 
-If you detect that the bodies have drifted, warn the user:
+1. **Update the body** — Edit the body content (all text, formatting, and comments after the closing `---` of the frontmatter block) so it is character-for-character identical in both files.
+2. **Leave frontmatter unchanged** — Do not modify the frontmatter of the mirror file; only the body must match.
+3. **Warn on detected drift** — If the bodies have already diverged, warn before proceeding:
 
 > **PRIMITIVE-DRIFT**: `<file>` and its mirror `<mirror>` have diverged. Update both to match before proceeding.
 
