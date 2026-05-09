@@ -190,7 +190,14 @@ jobs:
           if [[ ! -x templates/scripts/process-conditionals.py ]]; then
             chmod +x templates/scripts/process-conditionals.py
           fi
+          if [[ ! -x templates/scripts/check-harness-sync.py ]]; then
+            chmod +x templates/scripts/check-harness-sync.py
+          fi
           echo "PASS: Scripts executable"
+
+      - name: Run cross-harness sync check
+        run: |
+          python3 templates/scripts/check-harness-sync.py templates /tmp/validate-render
 
       - name: Final summary
         run: |

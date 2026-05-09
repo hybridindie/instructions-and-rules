@@ -111,6 +111,96 @@
       "render_dir": ".claude/rules/frontend",
       "copilot_description": "Frontend Conventions",
       "paths": ["{{FRONTEND_PATH}}/**"]
+    },
+    {
+      "article": "—",
+      "title": "Privacy & GDPR Compliance",
+      "claude_file": "privacy-gdpr.md",
+      "copilot_file": "privacy-gdpr.instructions.md",
+      "render_dir": ".claude/rules",
+      "copilot_description": "Privacy & GDPR Compliance",
+      "paths": ["{{BACKEND_PATH}}/src/libs/**/models/**/*.py", "{{BACKEND_PATH}}/app/core/security*.py", "{{BACKEND_PATH}}/app/api/routes/**"]
+    },
+    {
+      "article": "—",
+      "title": "Rate Limiting & Throttling",
+      "claude_file": "rate-limiting.md",
+      "copilot_file": "rate-limiting.instructions.md",
+      "render_dir": ".claude/rules",
+      "copilot_description": "Rate Limiting & Throttling",
+      "paths": ["{{BACKEND_PATH}}/app/api/routes/**/*.py", "{{BACKEND_PATH}}/app/core/middleware*.py", "{{BACKEND_PATH}}/app/core/dependencies*.py"]
+    },
+    {
+      "article": "—",
+      "title": "Input Validation & Security",
+      "claude_file": "input-security.md",
+      "copilot_file": "input-security.instructions.md",
+      "render_dir": ".claude/rules",
+      "copilot_description": "Input Validation & Security",
+      "paths": ["{{BACKEND_PATH}}/app/api/routes/**/*.py", "{{BACKEND_PATH}}/src/libs/**/models/*.py"]
+    },
+    {
+      "article": "—",
+      "title": "Production Safety: Feature Flags, Canary, Rollback",
+      "claude_file": "production-safety.md",
+      "copilot_file": "production-safety.instructions.md",
+      "render_dir": ".claude/rules",
+      "copilot_description": "Production Safety: Feature Flags, Canary, Rollback",
+      "paths": [".github/workflows/**", "{{BACKEND_PATH}}/app/core/feature_flags*.py", "{{FRONTEND_PATH}}/src/config/**"]
+    },
+    {
+      "article": "—",
+      "title": "Dependency Security & Supply Chain",
+      "claude_file": "dependency-security.md",
+      "copilot_file": "dependency-security.instructions.md",
+      "render_dir": ".claude/rules",
+      "copilot_description": "Dependency Security & Supply Chain",
+      "paths": ["pyproject.toml", "requirements.txt", "requirements*.txt", "package.json", "package-lock.json", "poetry.lock"]
+    },
+    {
+      "article": "—",
+      "title": "Logging, Observability & Tracing",
+      "claude_file": "logging-observability.md",
+      "copilot_file": "logging-observability.instructions.md",
+      "render_dir": ".claude/rules",
+      "copilot_description": "Logging, Observability & Tracing",
+      "paths": ["{{BACKEND_PATH}}/src/libs/**/logger*.py", "{{BACKEND_PATH}}/app/core/logging*.py", ".github/workflows/**"]
+    },
+    {
+      "article": "—",
+      "title": "Health Check Endpoints & K8s Probes",
+      "claude_file": "health-endpoints.md",
+      "copilot_file": "health-endpoints.instructions.md",
+      "render_dir": ".claude/rules",
+      "copilot_description": "Health Check Endpoints & K8s Probes",
+      "paths": ["{{BACKEND_PATH}}/app/health*.py", "{{BACKEND_PATH}}/app/api/health*.py"]
+    },
+    {
+      "article": "—",
+      "title": "Documentation Standards",
+      "claude_file": "documentation-standards.md",
+      "copilot_file": "documentation-standards.instructions.md",
+      "render_dir": ".claude/rules",
+      "copilot_description": "Documentation Standards",
+      "paths": ["README.md", "docs/**/*.md", "adr/**/*.md", "{{BACKEND_PATH}}/docs/**/*.md"]
+    },
+    {
+      "article": "—",
+      "title": "Performance Budgets & SLOs",
+      "claude_file": "performance-budgets.md",
+      "copilot_file": "performance-budgets.instructions.md",
+      "render_dir": ".claude/rules",
+      "copilot_description": "Performance Budgets & SLOs",
+      "paths": ["{{BACKEND_PATH}}/**/*.py", "{{FRONTEND_PATH}}/**", ".github/workflows/**"]
+    },
+    {
+      "article": "—",
+      "title": "Error Budgets & Availability Targets",
+      "claude_file": "error-budgets.md",
+      "copilot_file": "error-budgets.instructions.md",
+      "render_dir": ".claude/rules",
+      "copilot_description": "Error Budgets & Availability Targets",
+      "paths": ["{{BACKEND_PATH}}/**/*.py", ".github/workflows/**", "observability/**"]
     }
   ]
 }

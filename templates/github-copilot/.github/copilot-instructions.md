@@ -28,6 +28,16 @@ All new or refactored code MUST comply with the Constitutional Articles, grouped
 | VII | OAuth2/JWT. AES-256. Secrets never hardcoded. Tokens redacted in logs. | `/.github/instructions/backend-security.instructions.md` |
 | VIII | CI green: lint, type, tests, coverage, security scan. Lockfiles committed. | `/.github/instructions/cicd.instructions.md` |
 | IX | PR checklist per article. CalVer. Doc references present. | `/.github/instructions/enforcement.instructions.md` |
+| PRIV | GDPR/data retention. Right to erasure. PII minimized. | `/.github/instructions/privacy-gdpr.instructions.md` |
+| RATE | Token-bucket rate limits. Tiered quotas. 429 headers. | `/.github/instructions/rate-limiting.instructions.md` |
+| INSEC | CSP, XSS, SQL injection, command injection prevention. | `/.github/instructions/input-security.instructions.md` |
+| PROD | Feature flags, canary deploys, rollback procedures. | `/.github/instructions/production-safety.instructions.md` |
+| DEPS | Dependabot alerts. CVE SLA. Lockfiles + SBOM. | `/.github/instructions/dependency-security.instructions.md` |
+| OBS | Structured JSON logs. PII redaction. Correlation IDs. OpenTelemetry traces. | `/.github/instructions/logging-observability.instructions.md` |
+| HLTH | `/health`, `/ready`, `/live`. Graceful shutdown. K8s probes. | `/.github/instructions/health-endpoints.instructions.md` |
+| DOCS | README 8-section rule. ADR template. API docs with examples. | `/.github/instructions/documentation-standards.instructions.md` |
+| PERF | Backend p95 latency SLOs. Frontend bundle budgets. Core Web Vitals. | `/.github/instructions/performance-budgets.instructions.md` |
+| ERRB | Availability SLOs. Burn rate alerts. SEV classification. Blameless post-mortems. | `/.github/instructions/error-budgets.instructions.md` |
 
 > **When suggesting code, load the relevant scoped instruction for the file you're editing.** Do not restate the full article text.
 
