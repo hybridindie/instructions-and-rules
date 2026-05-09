@@ -166,9 +166,28 @@ def parse_pyproject_deps(text: str) -> dict[str, str]:
                 m = re.match(r'^([a-zA-Z0-9_\-]+)\s*=\s*"([^"]+)"', stripped)
                 if m:
                     deps[m.group(1).lower()] = m.group(2)
-    # PEP 621 / uv hatchling [project.dependencies]
-    for m in re.finditer(r"^([a-zA-Z0-9_\-]+)\s*\[?[^\]]*\]?\s*[\><\~\=\!]*=[\s]*([0-9][0-9.+\*a-z]*)", text, re.MULTILINE | re.IGNORECASE):
-        deps[m.group(1).lower()] = m.group(2)
+
+    # PEP 621 / uv hatchling [project.dependencies] — quoted list format
+    in_proj_deps = False
+    for line in text.splitlines():
+        if "[project]" in line:
+            in_proj_deps = False  # reset
+            continue
+        if "dependencies" in line and "=" in line and ("[" in line or not line.strip().endswith("]")):
+            in_proj_deps = True
+            continue
+        if in_proj_deps:
+            stripped = line.strip()
+            if stripped.startswith("]"):
+                in_proj_deps = False
+                continue
+            if stripped.startswith("#"):
+                continue
+            # Match "fastapi>=0.104.0,<1.0.0"
+            m = re.match(r'^"([a-zA-Z0-9_\-]+)(?:\[[^\]]*\])?\s*([><~=!]+=?)\s*([0-9][0-9.+\*a-z]*)"', stripped)
+            if m:
+                deps[m.group(1).lower()] = m.group(3)
+
     return deps
 
 
@@ -266,6 +285,7 @@ class ProjectInspector:
         if "mcp" in imports:
             return True
         # File names like weather_mcp.py, mcp_server.py
+        # Exclude config files (.mcp.json is VS Code MCP config, not a server)
         for p in self.root.rglob("*.py"):
             if re.search(r"(?:^|_)mcp(?:_|\.|$)", p.name, re.IGNORECASE):
                 return True
@@ -343,11 +363,11 @@ class ProjectInspector:
         has_flask = self.sniff_flask()
         has_frontend = self.sniff_frontend()
 
-        # Profile selection
-        if has_mcp:
-            profile = "mcp"
-        elif has_fastapi:
+        # Profile selection: FastAPI takes priority; MCP alone is secondary
+        if has_fastapi:
             profile = "fastapi"
+        elif has_mcp and not has_fastapi:
+            profile = "mcp"
         elif has_django:
             profile = "django"
         elif has_flask:
