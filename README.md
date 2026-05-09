@@ -1,21 +1,23 @@
 # AI Harness Templates
 
-**Constitutional AI instruction templates for TypeScript/React + Python/FastAPI projects.**
+**Constitutional AI instruction templates for Python (FastAPI, MCP, Django, Flask) and optional TypeScript/React projects.**
 
 Generate equivalent instruction harnesses for GitHub Copilot, Claude Code, and Opencode with a single command. These templates codify Articles I–IX (library-first architecture, TDD mandate, structured errors, async-first, API contracts, security, CI integrity, enforcement) along with PostgreSQL schema standards, frontend conventions, and a complete workflow pipeline.
 
 ## Quick Start
 
 ```bash
-# 1. Interactive skill (probes project, asks only unknowns)
+# 1. Auto-detect (recommended) — probes project, infers mode/profile, asks only unknowns
 cd your-project
-/bootstrap-harness --output-dir .
+bash templates/scripts/bootstrap.sh --auto-detect --output-dir .
 
-# 2. Direct CLI (supply all values)
+# 2. Manual CLI (supply all values)
 bash templates/scripts/bootstrap.sh \
   --project-name "YourProject" \
   --project-slug "yourproject" \
-  --has-mlflow "yes" \
+  --mode "full" \
+  --profile "fastapi" \
+  --has-mlflow "no" \
   --has-langgraph "no" \
   --output-dir "."
 ```
@@ -139,8 +141,17 @@ Each step gates the next. No step may be skipped without explanation.
 
 ## Tech Stack Assumptions
 
-These templates are tuned for:
+These templates support multiple stack profiles. Auto-detection selects the correct one:
 
+| Profile | Backend | Frontend | Database | Detected By |
+|---------|---------|----------|----------|-------------|
+| `fastapi+react` (default) | FastAPI, Pydantic | React 19, TypeScript, Vite | PostgreSQL / Supabase | `pyproject.toml` + `package.json` |
+| `fastapi` | FastAPI, Pydantic | None | PostgreSQL / Supabase | `pyproject.toml` only |
+| `mcp` | MCP server, Pydantic | None | None (stateless) | `mcp` in `pyproject.toml` deps |
+| `django` | Django | Optional | PostgreSQL | `django` in deps |
+| `flask` | Flask | Optional | PostgreSQL | `flask` in deps |
+
+Default stack (when auto-detect yields no clear signal):
 - **Backend**: Python 3.12, FastAPI, Pydantic, async/await, `uv`
 - **Frontend**: React 19, TypeScript, Vite, Vitest, shadcn/ui, Tailwind CSS
 - **Database**: PostgreSQL (Supabase-first), no SQLAlchemy

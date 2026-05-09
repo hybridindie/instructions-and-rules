@@ -47,6 +47,12 @@ CUSTOM_INSTRUCTIONS=""
 CUSTOM_TECH_STACK=""
 OUTPUT_DIR=""
 
+# ── Auto-detect support ──
+MODE="full"
+PROFILE=""
+AUTO_DETECT=0
+AUTO_JSON=""
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --project-name) PROJECT_NAME="$2"; shift 2 ;;
@@ -79,14 +85,85 @@ while [[ $# -gt 0 ]]; do
     --zod-validation) ZOD_VALIDATION="$2"; shift 2 ;;
     --custom-instructions) CUSTOM_INSTRUCTIONS="$2"; shift 2 ;;
     --custom-tech-stack) CUSTOM_TECH_STACK="$2"; shift 2 ;;
+    --mode) MODE="$2"; shift 2 ;;
+    --profile) PROFILE="$2"; shift 2 ;;
+    --auto-detect) AUTO_DETECT=1; shift 1 ;;
     --output-dir) OUTPUT_DIR="$2"; shift 2 ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
 
+# ── Auto-detect phase ──
+if [[ $AUTO_DETECT -eq 1 ]]; then
+  # Detect from current working directory
+  DETECTED=$(python3 "$SCRIPT_DIR/inspect-project.py" "$(pwd)" 2>/dev/null || echo '{}')
+  if [[ "$DETECTED" == '{}' || -z "$DETECTED" ]]; then
+    echo "WARN: Auto-detect returned no results; using defaults"
+  else
+    # Extract values using python3 (jq might not be available)
+    AUTO_MODE=$(python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('mode','full'))" <<< "$DETECTED")
+    AUTO_PROFILE=$(python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('profile','') or '')" <<< "$DETECTED")
+    AUTO_NAME=$(python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('project_name',''))" <<< "$DETECTED")
+    AUTO_SLUG=$(python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('project_slug',''))" <<< "$DETECTED")
+    PYTHON_VERSION=$(python3 -c "import sys,json; d=json.load(sys.stdin); v=d.get('python_version',''); print(v if v else '3.12')" <<< "$DETECTED")
+    FASTAPI_VERSION=$(python3 -c "import sys,json; d=json.load(sys.stdin); v=d.get('fastapi_version',''); print(v if v else '0.119+')" <<< "$DETECTED")
+    PKG_MANAGER_BACKEND=$(python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('pkg_manager_backend','uv'))" <<< "$DETECTED")
+    DB_PROVIDER=$(python3 -c "import sys,json; d=json.load(sys.stdin); v=d.get('db_provider',''); print(v if v else 'supabase')" <<< "$DETECTED")
+    CICD_PLATFORM=$(python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('cicd_platform','github-actions'))" <<< "$DETECTED")
+    HAS_MLFLOW=$(python3 -c "import sys,json; print('yes' if json.load(sys.stdin).get('has_mlflow',False) else 'no')" <<< "$DETECTED")
+    HAS_LANGGRAPH=$(python3 -c "import sys,json; print('yes' if json.load(sys.stdin).get('has_langgraph',False) else 'no')" <<< "$DETECTED")
+
+    # Frontend overrides (only if mode is NOT backend-only)
+    if [[ "$AUTO_MODE" != "backend-only" ]]; then
+      REACT_VERSION=$(python3 -c "import sys,json; d=json.load(sys.stdin); v=d.get('react_version',''); print(v if v else '19')" <<< "$DETECTED")
+      VITE_VERSION=$(python3 -c "import sys,json; d=json.load(sys.stdin); v=d.get('vite_version',''); print(v if v else '7.3')" <<< "$DETECTED")
+      STATE_MANAGER=$(python3 -c "import sys,json; d=json.load(sys.stdin); v=d.get('state_manager',''); print(v if v else 'zustand')" <<< "$DETECTED")
+      TAILWIND=$(python3 -c "import sys,json; print('yes' if json.load(sys.stdin).get('tailwind',False) else 'no')" <<< "$DETECTED")
+      ZOD_VALIDATION=$(python3 -c "import sys,json; print('yes' if json.load(sys.stdin).get('zod_validation',False) else 'no')" <<< "$DETECTED")
+    fi
+
+    # Apply detected overrides only where CLI did not already specify
+    if [[ -z "$MODE" || "$MODE" == "full" ]]; then
+      MODE="$AUTO_MODE"
+    fi
+    if [[ -z "$PROFILE" ]]; then
+      PROFILE="$AUTO_PROFILE"
+    fi
+    if [[ -z "$PROJECT_NAME" && -n "$AUTO_NAME" ]]; then
+      PROJECT_NAME="$AUTO_NAME"
+    fi
+    if [[ -z "$PROJECT_SLUG" && -n "$AUTO_SLUG" ]]; then
+      PROJECT_SLUG="$AUTO_SLUG"
+    fi
+
+    AUTO_JSON="$DETECTED"
+    echo "Auto-detected: mode=$MODE profile=$PROFILE python=$PYTHON_VERSION"
+  fi
+fi
+
 if [[ -z "$PROJECT_NAME" || -z "$PROJECT_SLUG" || -z "$OUTPUT_DIR" ]]; then
   echo "Usage: $0 --project-name <name> --project-slug <slug> --output-dir <dir> [options]"
+  echo ""
+  echo "Or auto-detect:"
+  echo "  $0 --auto-detect --output-dir <dir>"
   exit 1
+fi
+
+# If profile is mcp, strip frontend assumptions
+if [[ "$PROFILE" == "mcp" ]]; then
+  REACT_VERSION=""
+  TYPESCRIPT_VERSION=""
+  VITE_VERSION=""
+  STATE_MANAGER=""
+  FRONTEND_PATH=""
+  E2E_TOOL=""
+  UI_LIBRARY=""
+  TAILWIND="no"
+  ZOD_VALIDATION="no"
+  COVERAGE_AGGREGATE_FRONTEND=""
+  FRONTEND_STORE_EXAMPLES=""
+  CUSTOM_TECH_STACK=""
+  echo "Profile 'mcp' selected: frontend placeholders suppressed"
 fi
 
 if [[ -z "$REPO_ORG" ]]; then REPO_ORG="$PROJECT_SLUG"; fi
