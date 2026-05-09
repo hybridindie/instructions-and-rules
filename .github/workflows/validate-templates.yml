@@ -1,0 +1,201 @@
+name: Validate Templates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate Template System
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3 python3-pip sed grep
+          pip install -q --user yq
+
+      - name: Render templates to temp directory
+        run: |
+          bash templates/scripts/bootstrap.sh \
+            --project-name "ValidateTest" \
+            --project-slug "validatetest" \
+            --backend-path "backend" \
+            --frontend-path "frontend" \
+            --repo-org "testorg" \
+            --repo-name "validatetest" \
+            --db-provider "supabase" \
+            --state-manager "zustand" \
+            --python-version "3.12" \
+            --fastapi-version "0.119+" \
+            --react-version "19" \
+            --typescript-version "5.9" \
+            --vite-version "7.3" \
+            --pkg-manager-backend "uv" \
+            --pkg-manager-frontend "npm" \
+            --coverage-aggregate-backend "70" \
+            --coverage-aggregate-frontend "60" \
+            --calver-version "$(date +%Y.%m.%d)" \
+            --article-i-services "auth_manager, analytics_engine, content_manager" \
+            --frontend-stores "auth, analytics, content" \
+            --db-extensions "pgvector, pgmq, HSTORE" \
+            --has-mlflow "yes" \
+            --has-langgraph "yes" \
+            --cicd-platform "github-actions" \
+            --e2e-tool "playwright" \
+            --ui-library "shadcn/ui" \
+            --tailwind "yes" \
+            --zod-validation "yes" \
+            --custom-instructions "Custom rule 1\nCustom rule 2" \
+            --output-dir "/tmp/validate-render"
+
+      - name: Check zero orphaned placeholders
+        run: |
+          orphans=$(grep -ro '{{[A-Z_]*}}' /tmp/validate-render | sort | uniq -c)
+          if [[ -n "$orphans" ]]; then
+            echo "FAIL: Found orphaned placeholders:"
+            echo "$orphans"
+            exit 1
+          fi
+          echo "PASS: Zero orphaned placeholders"
+
+      - name: Check MLflow section present when enabled
+        run: |
+          count=$(grep -c 'Prompt Registry' /tmp/validate-render/.claude/rules/backend/architecture.md || true)
+          if [[ "$count" -lt 1 ]]; then
+            echo "FAIL: MLflow Prompt Registry section missing from architecture.md (has-mlflow=yes)"
+            exit 1
+          fi
+          echo "PASS: MLflow Prompt Registry section present in architecture.md"
+
+      - name: Check mirror sync
+        run: |
+          python3 templates/scripts/generate-copilot-mirrors.py /tmp/validate-render
+          
+          # Verify all Claude rules have Copilot mirrors
+          for claude_file in /tmp/validate-render/.claude/rules/**/*.md; do
+            [[ -f "$claude_file" ]] || continue
+            rel="${claude_file#/tmp/validate-render/.claude/rules/}"
+            mirror="/tmp/validate-render/.github/instructions/${rel//\//-}"
+            mirror="${mirror%.md}.instructions.md"
+            if [[ ! -f "$mirror" ]]; then
+              echo "FAIL: Mirror missing for $rel"
+              exit 1
+            fi
+          done
+          echo "PASS: All Copilot mirrors generated"
+
+      - name: Check mirror body identity
+        run: |
+          diffs=0
+          for claude_file in /tmp/validate-render/.claude/rules/**/*.md; do
+            [[ -f "$claude_file" ]] || continue
+            rel="${claude_file#/tmp/validate-render/.claude/rules/}"
+            mirror="/tmp/validate-render/.github/instructions/${rel//\//-}.instructions.md"
+            [[ -f "$mirror" ]] || continue
+            
+            # Extract body (after second ---)
+            claude_body=$(awk '/^---$/{if (++count == 2) nextfile} count >= 2' "$claude_file")
+            mirror_body=$(awk '/^---$/{if (++count == 2) nextfile} count >= 2' "$mirror")
+            
+            if [[ "$claude_body" != "$mirror_body" ]]; then
+              echo "DRIFT: $rel"
+              diffs=$((diffs + 1))
+            fi
+          done
+          
+          if [[ $diffs -gt 0 ]]; then
+            echo "FAIL: $diffs mirror pair(s) have drifted"
+            exit 1
+          fi
+          echo "PASS: All mirror bodies identical"
+
+      - name: Check hook syntax
+        run: |
+          errors=0
+          for hook in /tmp/validate-render/.claude/hooks/*.sh; do
+            [[ -f "$hook" ]] || continue
+            if ! bash -n "$hook"; then
+              echo "FAIL: Syntax error in $hook"
+              errors=$((errors + 1))
+            fi
+          done
+          
+          if [[ $errors -gt 0 ]]; then
+            exit 1
+          fi
+          echo "PASS: All hooks have valid syntax"
+
+      - name: Check key files exist
+        run: |
+          files=(
+            "CLAUDE.md"
+            "AGENTS.md"
+            ".github/copilot-instructions.md"
+            ".claude/rules/backend/architecture.md"
+            ".claude/rules/backend/testing.md"
+            ".claude/rules/backend/error-handling.md"
+            ".claude/rules/backend/async-patterns.md"
+            ".claude/rules/backend/api-design.md"
+            ".claude/rules/backend/security.md"
+            ".claude/rules/enforcement.md"
+            ".claude/rules/workflow.md"
+            ".claude/rules/database/sql-standards.md"
+            ".claude/rules/frontend/conventions.md"
+            ".claude/hooks/check-no-skipped-tests.sh"
+            ".claude/hooks/check-primitive-drift.sh"
+            ".claude/skills/gen-contract-test/SKILL.md"
+            ".opencode/skills/gen-contract-test/SKILL.md"
+            ".opencode/opencode.json"
+          )
+          
+          missing=0
+          for f in "${files[@]}"; do
+            if [[ ! -f "/tmp/validate-render/$f" ]]; then
+              echo "FAIL: Missing required file: $f"
+              missing=$((missing + 1))
+            fi
+          done
+          
+          if [[ $missing -gt 0 ]]; then
+            find /tmp/validate-render -type f | sort
+            exit 1
+          fi
+          echo "PASS: All required files present"
+
+      - name: Check template file count sanity
+        run: |
+          total=$(find /tmp/validate-render -type f | wc -l | tr -d ' ')
+          if [[ "$total" -lt 50 ]]; then
+            echo "FAIL: Expected at least 50 files, got $total"
+            find /tmp/validate-render -type f | sort
+            exit 1
+          fi
+          echo "PASS: Generated $total files"
+
+      - name: Check script executability
+        run: |
+          if [[ ! -x templates/scripts/bootstrap.sh ]]; then
+            chmod +x templates/scripts/bootstrap.sh
+          fi
+          if [[ ! -x templates/scripts/generate-copilot-mirrors.py ]]; then
+            chmod +x templates/scripts/generate-copilot-mirrors.py
+          fi
+          if [[ ! -x templates/scripts/process-conditionals.py ]]; then
+            chmod +x templates/scripts/process-conditionals.py
+          fi
+          echo "PASS: Scripts executable"
+
+      - name: Final summary
+        run: |
+          echo ""
+          echo "=== Validation Complete ==="
+          echo "Project: ValidateTest"
+          echo "Files:   $(find /tmp/validate-render -type f | wc -l) generated"
+          echo "Status:  ALL CHECKS PASSED"
