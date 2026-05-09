@@ -1,0 +1,20 @@
+{
+  "plugin": [
+    ".opencode/plugins/graphify.js"
+  ],
+  "skills": [
+    ".opencode/skills/gen-contract-test/SKILL.md",
+    ".opencode/skills/create-migration/SKILL.md",
+    ".opencode/skills/test-hygiene-scanner/SKILL.md",
+    ".opencode/skills/e2e-assertion-audit/SKILL.md"
+  ],
+  "commands": [
+    ".opencode/commands/preflight.md",
+    ".opencode/commands/migration-check.md"
+  ],
+  "agents": [
+    ".opencode/agents/backend-architect.md",
+    ".opencode/agents/frontend-architect.md",
+    ".opencode/agents/article-compliance-reviewer.md"
+  ]
+}
