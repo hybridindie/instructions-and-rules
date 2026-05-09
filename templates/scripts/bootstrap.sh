@@ -13,6 +13,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEMPLATES_DIR="$(dirname "$SCRIPT_DIR")"
 
+# ... CLI parsing and defaults remain unchanged ...
+# [CLI defaults truncated for brevity - same as before]
 PROJECT_NAME=""
 PROJECT_SLUG=""
 BACKEND_PATH="backend"
@@ -111,6 +113,23 @@ else
   TYPE_FRONTEND_CMD="npm run type-check"
 fi
 
+MIRROR_PAIRS="$TEMPLATES_DIR/_shared/mirror-pairs.json"
+
+# Portable: use python3 to look up render_dir for a given filename
+get_render_dir() {
+  python3 -c "
+import json, sys, os
+with open('$TEMPLATES_DIR/_shared/mirror-pairs.json') as f:
+    data = json.load(f)
+for entry in data.get('entries', []):
+    if os.path.basename(entry['claude_file']) == '$1':
+        print(entry['render_dir'])
+        sys.exit(0)
+if '$1' == 'primitive-drift.md':
+    print('.github/instructions')
+" 2>/dev/null
+}
+
 substitute_placeholders() {
   local src="$1"
   local dst="$2"
@@ -169,48 +188,28 @@ render_harness() {
 mkdir -p "$OUTPUT_DIR"
 
 echo "=== Rendering Shared Articles ==="
-for shared in "$TEMPLATES_DIR/_shared/articles/"*.md; do
-  [[ -f "$shared" ]] || continue
-  fname=$(basename "$shared")
-  case "$fname" in
-    architecture.md)        dst_dir="$OUTPUT_DIR/.claude/rules/backend" ;;
-    testing.md)             dst_dir="$OUTPUT_DIR/.claude/rules/backend" ;;
-    error-handling.md)      dst_dir="$OUTPUT_DIR/.claude/rules/backend" ;;
-    async-patterns.md)      dst_dir="$OUTPUT_DIR/.claude/rules/backend" ;;
-    api-design.md)          dst_dir="$OUTPUT_DIR/.claude/rules/backend" ;;
-    security.md)            dst_dir="$OUTPUT_DIR/.claude/rules/backend" ;;
-    cicd.md)                dst_dir="$OUTPUT_DIR/.claude/rules" ;;
-    enforcement.md)         dst_dir="$OUTPUT_DIR/.claude/rules" ;;
-    primitive-drift.md)     dst_dir="$OUTPUT_DIR/.github/instructions" ;;
-    workflow.md)             dst_dir="$OUTPUT_DIR/.claude/rules" ;;
-    *) echo "Unhandled shared article: $fname"; continue ;;
-  esac
-  substitute_placeholders "$shared" "$dst_dir/$fname"
-done
 
-for shared in "$TEMPLATES_DIR/_shared/database/"*.md; do
-  [[ -f "$shared" ]] || continue
-  fname=$(basename "$shared")
-  case "$fname" in
-    sql-standards.md)       dst_dir="$OUTPUT_DIR/.claude/rules/database" ;;
-    infrastructure.md)      dst_dir="$OUTPUT_DIR/.claude/rules/database" ;;
-    *) echo "Unhandled shared database: $fname"; continue ;;
-  esac
-  substitute_placeholders "$shared" "$dst_dir/$fname"
-done
+# Walk all subdirs under _shared/ and route each .md via mirror-pairs.json
+for shared_dir in "$TEMPLATES_DIR/_shared"/*; do
+  [[ -d "$shared_dir" ]] || continue
+  for shared in "$shared_dir/"*.md; do
+    [[ -f "$shared" ]] || continue
+    fname=$(basename "$shared")
 
-for shared in "$TEMPLATES_DIR/_shared/frontend/"*.md; do
-  [[ -f "$shared" ]] || continue
-  fname=$(basename "$shared")
-  case "$fname" in
-    conventions.md)         dst_dir="$OUTPUT_DIR/.claude/rules/frontend" ;;
-    *) echo "Unhandled shared frontend: $fname"; continue ;;
-  esac
-  substitute_placeholders "$shared" "$dst_dir/$fname"
+    render_dir=$(get_render_dir "$fname")
+
+    if [[ -n "$render_dir" ]]; then
+      dst_dir="$OUTPUT_DIR/$render_dir"
+      mkdir -p "$dst_dir"
+      substitute_placeholders "$shared" "$dst_dir/$fname"
+    else
+      echo "Unhandled shared article: $fname"
+    fi
+  done
 done
 
 echo "=== Mirroring Claude Rules to Copilot Instructions ==="
-python3 "$SCRIPT_DIR/generate-copilot-mirrors.py" "$OUTPUT_DIR"
+python3 "$SCRIPT_DIR/generate-copilot-mirrors.py" "$OUTPUT_DIR" "$TEMPLATES_DIR"
 
 echo "=== Rendering GitHub Copilot Harness ==="
 render_harness "$TEMPLATES_DIR/github-copilot/.github" "$OUTPUT_DIR/.github"

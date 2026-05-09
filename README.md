@@ -192,12 +192,7 @@ When a rule changes across all projects:
 
 ## Related Projects
 
-These templates are derived from the working harnesses of:
-
-- [`influencer-sync`](https://github.com/hybridindie/influencer-sync) — Creator platform with MLflow Prompt Registry
-- [`nomikailist`](https://github.com/hybridindie/nomikailist) — Anime/manga discovery with LangGraph recommendations
-
-Both projects maintain equivalent instruction harnesses using these same constitutional rules.
+These templates are derived from the working harnesses of multiple past projects and have evolved into what you see here.
 
 ## Versioning
 

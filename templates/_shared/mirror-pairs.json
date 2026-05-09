@@ -1,0 +1,116 @@
+{
+  "version": "1.0.0",
+  "description": "Single source of truth for Claude rules -> Copilot instruction mirrors and shared article routing. Update this file to add/remove articles; all downstream tools read from here.",
+  "claude_rules_dir": ".claude/rules",
+  "copilot_instructions_dir": ".github/instructions",
+  "entries": [
+    {
+      "article": "I & II",
+      "title": "Architecture: Library-First & Service Isolation",
+      "claude_file": "backend/architecture.md",
+      "copilot_file": "backend-architecture.instructions.md",
+      "render_dir": ".claude/rules/backend",
+      "copilot_description": "Architecture: Library-First & Service Isolation (Articles I & II)",
+      "paths": ["{{BACKEND_PATH}}/src/libs/**/*.py", "{{BACKEND_PATH}}/app/**/*.py"]
+    },
+    {
+      "article": "III",
+      "title": "Testing: TDD Mandate",
+      "claude_file": "backend/testing.md",
+      "copilot_file": "backend-testing.instructions.md",
+      "render_dir": ".claude/rules/backend",
+      "copilot_description": "Testing: TDD Mandate (Article III)",
+      "paths": ["{{BACKEND_PATH}}/**/*.py"]
+    },
+    {
+      "article": "IV",
+      "title": "Error Handling & Observability",
+      "claude_file": "backend/error-handling.md",
+      "copilot_file": "backend-error-handling.instructions.md",
+      "render_dir": ".claude/rules/backend",
+      "copilot_description": "Error Handling & Observability (Article IV)",
+      "paths": ["{{BACKEND_PATH}}/src/libs/**/*.py", "{{BACKEND_PATH}}/app/**/*.py"]
+    },
+    {
+      "article": "V",
+      "title": "Async-First & Typed Interfaces",
+      "claude_file": "backend/async-patterns.md",
+      "copilot_file": "backend-async-patterns.instructions.md",
+      "render_dir": ".claude/rules/backend",
+      "copilot_description": "Async-First & Typed Interfaces (Article V)",
+      "paths": ["{{BACKEND_PATH}}/src/libs/**/*.py", "{{BACKEND_PATH}}/app/**/*.py"]
+    },
+    {
+      "article": "VI",
+      "title": "API Contract & Documentation",
+      "claude_file": "backend/api-design.md",
+      "copilot_file": "backend-api-design.instructions.md",
+      "render_dir": ".claude/rules/backend",
+      "copilot_description": "API Contract & Documentation (Article VI)",
+      "paths": ["{{BACKEND_PATH}}/app/api/**/*.py"]
+    },
+    {
+      "article": "VII",
+      "title": "Secure-by-Default",
+      "claude_file": "backend/security.md",
+      "copilot_file": "backend-security.instructions.md",
+      "render_dir": ".claude/rules/backend",
+      "copilot_description": "Secure-by-Default (Article VII)",
+      "paths": ["{{BACKEND_PATH}}/src/libs/auth_manager/**/*.py", "{{BACKEND_PATH}}/src/libs/platform_auth/**/*.py", "{{BACKEND_PATH}}/src/libs/route_guard/**/*.py", "{{BACKEND_PATH}}/app/api/routes/auth*.py", "{{BACKEND_PATH}}/app/core/security*.py", "{{BACKEND_PATH}}/app/core/dependencies*.py"]
+    },
+    {
+      "article": "VIII",
+      "title": "CI/CD & Automation Integrity",
+      "claude_file": "cicd.md",
+      "copilot_file": "cicd.instructions.md",
+      "render_dir": ".claude/rules",
+      "copilot_description": "CI/CD & Automation Integrity (Article VIII)",
+      "paths": [".github/workflows/**", "pyproject.toml", "requirements.txt", "package.json", "{{FRONTEND_PATH}}/package.json"]
+    },
+    {
+      "article": "IX",
+      "title": "Enforcement, Compliance & Versioning",
+      "claude_file": "enforcement.md",
+      "copilot_file": "enforcement.instructions.md",
+      "render_dir": ".claude/rules",
+      "copilot_description": "Enforcement, Compliance & Versioning (Article IX)",
+      "paths": ["**/*"]
+    },
+    {
+      "article": "—",
+      "title": "Workflow Pipeline",
+      "claude_file": "workflow.md",
+      "copilot_file": "workflow.instructions.md",
+      "render_dir": ".claude/rules",
+      "copilot_description": "Workflow Pipeline (canonical)",
+      "paths": ["**/*"]
+    },
+    {
+      "article": "—",
+      "title": "SQL Standards: Schema Design & Migrations",
+      "claude_file": "database/sql-standards.md",
+      "copilot_file": "database-sql-standards.instructions.md",
+      "render_dir": ".claude/rules/database",
+      "copilot_description": "SQL Standards: Schema Design & Migrations",
+      "paths": ["supabase/migrations/**", "supabase/seed.sql"]
+    },
+    {
+      "article": "—",
+      "title": "PostgreSQL-Only Infrastructure",
+      "claude_file": "database/infrastructure.md",
+      "copilot_file": "database-infrastructure.instructions.md",
+      "render_dir": ".claude/rules/database",
+      "copilot_description": "PostgreSQL-Only Infrastructure",
+      "paths": ["supabase/**", "{{BACKEND_PATH}}/src/libs/**/repositories/**", "{{BACKEND_PATH}}/src/libs/**/repository.py", "{{BACKEND_PATH}}/app/core/dependencies*.py", "{{BACKEND_PATH}}/docs/DATABASE_ARCHITECTURE.md"]
+    },
+    {
+      "article": "—",
+      "title": "Frontend Conventions",
+      "claude_file": "frontend/conventions.md",
+      "copilot_file": "frontend-conventions.instructions.md",
+      "render_dir": ".claude/rules/frontend",
+      "copilot_description": "Frontend Conventions",
+      "paths": ["{{FRONTEND_PATH}}/**"]
+    }
+  ]
+}

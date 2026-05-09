@@ -1,162 +1,71 @@
 # GitHub Copilot Project Instructions – {{PROJECT_NAME}}
 
-Authoritative context for AI code suggestions in this repository. Keep guidance concise in generated code; do not restate this whole file inside source. Use it to influence *how* you suggest code.
-
-Scope: This document is self-contained for GitHub Copilot; the only shared authoritative source across agents is `/.claude/rules/` (Articles I-IX).
-
----
-## GitHub Interaction Policy
-- Use GitHub MCP server tools for all GitHub interactions.
-- Do not use `gh` CLI for issues, pull requests, branches, commits, labels, or reviews.
-- Use MCP issue/PR listing and search tools to gather project context.
+Authoritative context for AI code suggestions in this repository.  
+Scope: This document is self-contained for GitHub Copilot. The shared constitutional source of truth is `/.claude/rules/` (Articles I–IX) and `/.github/instructions/*.instructions.md`.
 
 ---
+
 ## 1. Core Mission
 
-Baseline for Python / TypeScript in a SaaS setting. All new or refactored code MUST comply with the Constitutional Articles below, grouped by concern:
+All new or refactored code MUST comply with the Constitutional Articles, grouped by concern:
 
 - **Structure** (I–II): library-first, service isolation
 - **Quality** (III, VIII): TDD, CI/CD determinism
-- **Reliability** (IV–V): structured errors, async-first
-- **API & Security** (VI–VII): OpenAPI docs, auth/encryption
+- **Reliability** (IV–V): structured errors, async-first, no blocking I/O
+- **API & Security** (VI–VII): OpenAPI docs, auth/encryption, input validation
 - **Traceability** (IX): inline Article references in non-trivial logic
 
----
-## 2. Constitutional Articles (Enforce in Suggestions)
-| Article | Requirement (Summarized for Code Generation) |
-|---------|----------------------------------------------|
-| I | Every feature = standalone library (in `{{BACKEND_PATH}}/src/libs/<service_name>`). No business logic inside API route modules. `src/libs/` MUST NOT import from `app.*`. |
-| II | Service isolation: all business logic testable independently of HTTP layer. Services accept dependency-injected clients, return typed results. No FastAPI imports in service layer. |
-| III | TDD mandatory. Always propose/expect a failing test first. Maintain coverage per constitution. Prefer contract/integration tests over excessive mocking. |
-| IV | Structured error handling: domain exceptions inherit from a common base (e.g., `DomainError`). Never `print` raw tracebacks; return structured error objects. |
-| V | Async‑first. Use `async def`, `httpx.AsyncClient`, async SQL layers. No shared mutable global state. Inject dependencies explicitly. |
-| VI | All FastAPI endpoints documented (summary, description, response models) and included in OpenAPI. Provide explicit response model classes. |
-| VII | Auth via OAuth2/JWT. Sensitive data encrypted (AES‑256) and secrets never hard‑coded. Redact tokens in logs. Token lifetimes: access ≤ 15min, refresh ≤ 7d. |
-| VIII | CI/CD ready: deterministic tests, type safety, lint cleanliness. Avoid flaky time/network dependent code unless controlled. |
-| IX | Reference the constitution when adding non‑trivial logic in docstrings or comments (e.g., `# Article V: async-first, no blocking call`). |
+## 2. Constitutional Articles (Pointer Table)
 
----
-## 3. Architectural Directives
-- Backend structure: service libraries in `{{BACKEND_PATH}}/src/libs/` (e.g., `{{ARTICLE_I_SERVICE_EXAMPLES}}`).
-- FastAPI layer (`{{BACKEND_PATH}}/app/`) = thin orchestration + request/response translation + dependency wiring only.
-- Libraries expose:
-  - Domain models (Pydantic) – stable contracts.
-  - Service layer (pure async functions) – no framework imports.
-  - Error types (structured hierarchy) & mappers.
-- State management: ephemeral per request; use PostgreSQL (pgmq for queues, LISTEN/NOTIFY for events, UNLOGGED tables for cache)—never in‑memory globals.
+| Article | Requirement (Summary) | Detailed Rules |
+|---------|----------------------|----------------|
+| I | Library-first: all features live in `{{BACKEND_PATH}}/src/libs/<service>/`. Zero business logic in route handlers. | `/.github/instructions/backend-architecture.instructions.md` |
+| II | Service isolation: DI, typed Pydantic returns, no FastAPI imports in service layer. | `/.github/instructions/backend-architecture.instructions.md` |
+| III | TDD mandatory. Failing test first. Tiered coverage: Security 90%+, Business 70%+, AI/ML 50%+. | `/.github/instructions/backend-testing.instructions.md` |
+| IV | Structured errors: `DomainError` hierarchy, sanitized envelopes, no leaked stack traces. | `/.github/instructions/backend-error-handling.instructions.md` |
+| V | Async-first: no blocking I/O, explicit timeouts, DI for DB/cache/HTTP, no global singletons. | `/.github/instructions/backend-async-patterns.instructions.md` |
+| VI | OpenAPI documented endpoints, Pydantic `response_model`, no raw dict handling. | `/.github/instructions/backend-api-design.instructions.md` |
+| VII | OAuth2/JWT. AES-256. Secrets never hardcoded. Tokens redacted in logs. | `/.github/instructions/backend-security.instructions.md` |
+| VIII | CI green: lint, type, tests, coverage, security scan. Lockfiles committed. | `/.github/instructions/cicd.instructions.md` |
+| IX | PR checklist per article. CalVer. Doc references present. | `/.github/instructions/enforcement.instructions.md` |
+
+> **When suggesting code, load the relevant scoped instruction for the file you're editing.** Do not restate the full article text.
+
+## 3. Tech Stack & Architecture
+
+- Python {{PYTHON_VERSION}} + FastAPI {{FASTAPI_VERSION}}
+- PostgreSQL ({{DB_EXTENSIONS}}) via {{DB_PROVIDER}} client
+- React {{REACT_VERSION}} + TypeScript {{TYPESCRIPT_VERSION}} + Vite
+- {{STATE_MANAGER}} stores (auth, analytics, content) ≤ 300 lines
+- Test runners: {{TEST_BACKEND_CMD}} (backend), {{TEST_FRONTEND_CMD}} (frontend)
+- shadcn/ui + Tailwind
+
 {{#HAS_MLFLOW}}
-- MLflow Prompt Registry: All AI/LLM prompts are versioned in MLflow and loaded at runtime.
-- MLflow Prompt Registry is the REQUIRED source in normal operation; prompt updates must be published there before rollout.
-- Python constants are seed material and degraded-state fallback only (not a primary runtime source).
-- Prompts cached in Postgres (`app_cache`) with process-local mirror.
+- MLflow Prompt Registry is the runtime source of truth for all AI/LLM prompts.
 {{/HAS_MLFLOW}}
 {{#HAS_LANGGRAPH}}
-- LangGraph Agent Development: State uses `TypedDict` (not dataclass). Tools return dicts for LangGraph to merge (not mutating state).
+- LangGraph 1.0 for agent orchestration.
 {{/HAS_LANGGRAPH}}
 
----
-## 4. Testing Hierarchy (Generate in This Order)
-1. Contract tests (`tests/contract/`): interface & payload shapes.
-2. Integration tests (`tests/integration/`): real adapters (DB, message bus) where feasible.
-3. E2E tests (`tests/e2e/`): full API/user flows.
-4. Unit tests (`tests/unit/`): focused logic; avoid mocking entire subsystems.
+## 4. Suggestion Do / Do Not
 
-Rules:
-- New functionality: propose a failing test stub first with an assertion that currently fails.
-- Coverage target: tiered by criticality (Security 90%+, Revenue 85%+, Business logic 70%+, AI/ML 50%+, Utilities 50%+; aggregate {{COVERAGE_AGGREGATE_BACKEND}}%). See constitution Article III.
-- Use `pytest` async patterns (`pytest.mark.asyncio`).
-
----
-## 5. Error Handling Blueprint
-Create a shared base, e.g.:
-```python
-class DomainError(Exception):
-    def __init__(self, code: str, message: str, *, details: dict | None = None):
-        self.code = code
-        self.message = message
-        self.details = details or {}
-        super().__init__(message)
-```
-Map these to HTTP responses in FastAPI routers with consistent JSON shape:
-```json
-{"error": {"code": "RESOURCE_NOT_FOUND", "message": "...", "details": {}}}
-```
-Never leak stack traces or internal identifiers. For HTTP status mapping of DomainError codes, see the constitution (Article IV).
-
----
-## 6. Async & Concurrency
-- Use async DB drivers / clients.
-- No blocking I/O inside async functions (wrap legacy sync calls in `run_in_executor` ONLY if unavoidable, and mark with Article V reference).
-- Avoid shared mutable containers; prefer function parameters and return values.
-- Idempotent operations for retriable actions.
-- Always set explicit timeouts for external I/O (HTTP/DB/cache/message bus).
-- Batch‑process large datasets asynchronously — no synchronous loops over unbounded collections.
-- Multi‑step workflows that must be atomic: use outbox/saga pattern, not fire‑and‑forget.
-
----
-## 7. Security & Compliance
-- JWT handling: short‑lived access (≤ 15min), refresh ≤ 7d. Verify signature & expiry.
-- Encryption: if generating suggestions for encryption utilities, use AES‑256 GCM mode with secure random nonce.
-- Sanitize all external inputs; never trust client JSON.
-- Do NOT log PII or secrets.
-- Prefer actively maintained libraries; audit dependencies for CVEs before adoption.
-- Validate security‑critical config at application startup — reject missing/weak secrets in production.
-
----
-## 8. FastAPI Endpoint Style
-```python
-@router.post("/resource", response_model=ResourceOut, summary="Create resource")
-async def create_resource(payload: ResourceIn, deps=Depends(...)):
-    # Article I: delegate to library
-    result = await resource_service.create(payload)
-    return result
-```
-No domain calculations inline; ALWAYS delegate to a library function.
-
----
-## 9. Pydantic Model Conventions
-- Separate input (`FooIn`), internal/domain (`FooModel`), and output (`FooOut`) when transformations occur.
-- Use `field_validator` (Pydantic v2) for domain invariants.
-- Include explicit `Config` / model config (e.g., `json_schema_extra`) for OpenAPI clarity when needed.
-
----
-## 10. Logging & Observability
-- Use structured logging at the boundary layers only.
-- Library core code should return rich error objects instead of logging.
-
----
-## 11. Frontend (If Suggesting Full‑Stack Changes)
-- React {{REACT_VERSION}} + {{STATE_MANAGER}} stores only for client state ({{FRONTEND_STORE_EXAMPLES}}).
-- Service calls go through dedicated service modules – no direct fetch in components.
-- Error boundaries & typed error envelopes.
-- Avoid adding global mutable singletons outside {{STATE_MANAGER}}.
-- No `as any` casts — use proper generics, type widening, or `as never` for test mocks.
-- No `dangerouslySetInnerHTML` or raw `innerHTML` — use DOMPurify or text content.
-- No `console.log` in production code — remove or gate behind `import.meta.env.DEV`.
-- {{STATE_MANAGER}} stores ≤ 300 lines; split into sub‑stores with `immer` middleware when larger.
-
----
-## 12. Suggestion Do / Do Not
 Do:
-- For all new functionality or refactored code, propose a failing test first before implementation.
-- Reference Articles in critical comments.
-- Keep functions small, pure, and side‑effect minimal.
-- Use dependency injection patterns.
-- Provide type annotations everywhere.
-- Favor composition over inheritance (except error base class).
+- Propose a **failing test first** before implementation (Article III).
+- Reference Articles in critical comments: `# Article V: async DB interaction`.
+- Keep functions small, pure, typed, and side-effect minimal.
+- Use dependency injection. Return Pydantic models.
 
 Do NOT:
 - Insert blocking `time.sleep` or synchronous DB calls in async code.
-- Embed secrets, keys, tokens, or raw credentials.
+- Embed secrets, tokens, or credentials in code.
 - Add business logic directly into FastAPI routes.
-- Write print statements for operational logging.
-- Suggest code without corresponding tests (unless user explicitly requests exploratory snippet).
-- Use bare `except Exception` — catch specific DomainError subclasses.
-- Use `asyncio.sleep()` in tests — use deterministic waits or condition polling.
-- Return `dict[str, Any]` from service methods — define Pydantic response models.
+- Use `print` for operational logging.
+- Use bare `except Exception` — catch specific `DomainError` subclasses.
+- Return `dict[str, Any]` from service methods.
+- Use `asyncio.sleep()` in tests.
 
----
-## 13. Common Templates (For Copilot Prompt Bias)
+## 5. Common Templates
+
 Test First Skeleton:
 ```python
 # tests/contract/test_<service>_<action>.py
@@ -165,70 +74,43 @@ from libs.<service>.models import <Model>
 
 @pytest.mark.asyncio
 async def test_<action>_contract__fails_without_required_field():
-    # Arrange
     payload = {...}  # Missing required field
-    # Act / Assert
     with pytest.raises(ValueError):
         await <service>_service.<action>(payload)
 ```
+
 Domain Service Function Skeleton:
 ```python
 # Article I, III, V
 async def create_resource(payload: ResourceIn) -> ResourceOut:
-    # Validate (Article III tests enforce these contracts)
+    # Validate (Article III tests enforce contracts)
     # Interact with persistence via injected repository
-    # Return pure Pydantic model
-    ...
+    return ResourceOut(...)
 ```
 
----
-## 14. Coverage & Quality Hooks
-- Always suggest adding an additional edge case test (empty input, large input, unauthorized, race condition) after main path.
-- Encourage property‑based tests for invariant‑heavy logic (but keep minimal when first introducing).
+## 6. Acceptance Checklist (Apply Before Suggesting)
+
+- [ ] Test exists & fails initially? (III)
+- [ ] Business logic isolated in library? (I)
+- [ ] Async and non-blocking? (V)
+- [ ] Structured error path? (IV)
+- [ ] Endpoint documented & typed? (VI)
+- [ ] Security addressed? (VII)
+- [ ] No global mutable singletons? (V)
+
+## 7. When User Requests a Quick Hack
+
+Politely steer toward constitutional compliance. If they explicitly insist, annotate generated code with `# WARNING: Non-compliant (explain)`.
+
+## 8. Evolution
+
+Updates to these instructions: PR modifying ONLY this file + reference rationale + impacted Articles. These instructions stand alone; do not couple changes to other agent prompt files.
 
 ---
-## 15. Migration / Refactor Guidance
-When modernizing legacy code:
-- Extract pure functions to `libs/<service>/core/`.
-- Wrap legacy sync calls behind async facades with explicit TODO + Article reference.
-- Replace inline validation with Pydantic model validators.
 
----
-## 16. Acceptance Checklist (Apply Mentally Before Suggesting Final Code)
-- Test exists & fails initially? (Article III)
-- Business logic isolated in library? (Article I)
-- Async and non‑blocking? (Article V)
-- Structured error paths? (Article IV)
-- Endpoint documented & typed? (Article VI)
-- Security considerations addressed? (Article VII)
-- No global mutable singletons? (Article V)
-
----
-## 17. When User Requests a Quick Hack
-Politely steer toward constitutional compliance. If they explicitly insist, annotate generated code with `# WARNING: Non-compliant (explain)` so it is easy to refactor later.
-
----
-## 18. Referencing the Constitution
-Use concise inline references, e.g.:
-```python
-# Article V: ensure async DB interaction
-```
-Do not paste the full constitution text.
-
----
-## 19. Evolution
-If future changes require updating these instructions: create a PR modifying ONLY this file and reference rationale + impacted Constitution Articles. These instructions stand alone; do not couple changes here to other agent prompt files.
-
----
-## 20. Final Principle
-Every suggestion should reduce future refactor cost while increasing reliability, clarity, and verifiability.
-
----
 ## Versioning Policy (CalVer)
-All version references and bumps MUST follow CalVer (YYYY.MM.DD[-N]). When suggesting or applying a version change, ensure:
-- The authoritative constitution rules live in `/.claude/rules/`.
-- Changelog entries reflect the CalVer date.
-- Refer to the Constitution's Versioning Policy for specifics.
+
+`YYYY.MM.DD[-N]`. The authoritative constitution lives in `/.claude/rules/`. Changelog entries reflect the CalVer date.
 
 {{CUSTOM_INSTRUCTIONS}}
 
