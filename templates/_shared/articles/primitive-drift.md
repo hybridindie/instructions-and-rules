@@ -22,8 +22,7 @@ applyTo: ".claude/rules/**, .github/instructions/**"
 | `database/infrastructure.md` | `database-infrastructure.instructions.md` |
 | `database/sql-standards.md` | `database-sql-standards.instructions.md` |
 | `frontend/conventions.md` | `frontend-conventions.instructions.md` |
-
-`workflow.md` has no Copilot mirror — global guidance lives in `.github/copilot-instructions.md`.
+| `workflow.md` | `workflow.instructions.md` |
 
 ## When You Edit One File
 

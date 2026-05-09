@@ -5,8 +5,6 @@ Generate Copilot instruction mirrors from Claude rules.
 Reads every .claude/rules/**/*.md file, extracts the frontmatter paths,
 and writes a corresponding .github/instructions/*.instructions.md file
 with Copilot-style frontmatter (description + applyTo).
-
-workflow.md is skipped per primitive-drift policy.
 """
 
 import os
@@ -88,10 +86,6 @@ def main():
             if not fname.endswith('.md'):
                 continue
             rel = os.path.relpath(os.path.join(root, fname), start=rules_dir)
-            # workflow.md has no Copilot mirror per primitive-drift policy
-            if rel == 'workflow.md':
-                print(f"  Skipped:  .claude/rules/{rel} (no Copilot mirror)")
-                continue
             generate_mirror(os.path.join(root, fname), out_dir)
 
 

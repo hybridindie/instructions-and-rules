@@ -1,0 +1,206 @@
+# AI Harness Templates
+
+**Constitutional AI instruction templates for TypeScript/React + Python/FastAPI projects.**
+
+Generate equivalent instruction harnesses for GitHub Copilot, Claude Code, and Opencode with a single command. These templates codify Articles I–IX (library-first architecture, TDD mandate, structured errors, async-first, API contracts, security, CI integrity, enforcement) along with PostgreSQL schema standards, frontend conventions, and a complete workflow pipeline.
+
+## Quick Start
+
+```bash
+# 1. Interactive skill (probes project, asks only unknowns)
+cd your-project
+/bootstrap-harness --output-dir .
+
+# 2. Direct CLI (supply all values)
+bash templates/scripts/bootstrap.sh \
+  --project-name "YourProject" \
+  --project-slug "yourproject" \
+  --has-mlflow "yes" \
+  --has-langgraph "no" \
+  --output-dir "."
+```
+
+Both approaches produce:
+- `.claude/rules/` — Constitutional Articles I–IX (source of truth)
+- `.github/instructions/` — Auto-mirrored Copilot instructions
+- `.github/copilot-instructions.md` — Repo-wide Copilot guidance
+- `CLAUDE.md` + `AGENTS.md` — Master context files
+- `.opencode/` — Equivalent skills, commands, agents, plugins
+
+## Architecture
+
+### Shared Source of Truth
+
+The `_shared/` directory contains the constitutional rules that are rendered into **all three harnesses**:
+
+| File | Article | Topic |
+|------|---------|-------|
+| `articles/architecture.md` | I & II | Library-first, service isolation |
+| `articles/testing.md` | III | TDD mandate, tiered coverage |
+| `articles/error-handling.md` | IV | Structured errors, DomainError envelope |
+| `articles/async-patterns.md` | V | Async-first, concurrency, atomicity |
+| `articles/api-design.md` | VI | OpenAPI, Pydantic models, route delegation |
+| `articles/security.md` | VII | OAuth2/JWT, AES-256, secret hygiene |
+| `articles/cicd.md` | VIII | CI gates, deterministic builds |
+| `articles/enforcement.md` | IX | PR checklist, enforcement gates, versioning |
+| `articles/workflow.md` | — | Step-by-step workflow pipeline (#1–7) |
+| `database/sql-standards.md` | — | PostgreSQL schema conventions |
+| `database/infrastructure.md` | — | PostgreSQL-only infrastructure |
+| `frontend/conventions.md` | — | React/TypeScript/Vite conventions |
+
+### Mirror System
+
+`.claude/rules/*.md` (Claude) and `.github/instructions/*.instructions.md` (Copilot) are **body-identical mirrors**. They share the same content but have different frontmatter:
+
+- **Claude**: `paths:` globs (file-scoped rules)
+- **Copilot**: `description:` + `applyTo:` (scope + context hints)
+
+The `generate-copilot-mirrors.py` script creates Copilot mirrors automatically from Claude rules. Drift between mirrors is detected by `check-primitive-drift.sh`.
+
+```text
+Claude rules              Copilot instructions
+├── backend/
+│   ├── architecture.md →   backend-architecture.instructions.md
+│   ├── testing.md      →   backend-testing.instructions.md
+│   └── ...
+├── database/
+│   ├── sql-standards.md→   database-sql-standards.instructions.md
+│   └── ...
+├── frontend/
+│   └── conventions.md  →   frontend-conventions.instructions.md
+└── enforcement.md      →   enforcement.instructions.md
+```
+
+### Three Equivalent Harnesses
+
+Each platform receives the **same rules** but in its own format:
+
+| Platform | Entry Files | Ecosystem |
+|----------|-------------|-----------|
+| **Claude Code** | `CLAUDE.md`, `AGENTS.md` | `.claude/rules/`, `.claude/commands/`, `.claude/agents/`, `.claude/skills/`, `.claude/hooks/`, `.claude/scripts/` |
+| **GitHub Copilot** | `.github/copilot-instructions.md` | `.github/instructions/`, `.github/rules/`, `.github/agents/`, `.github/prompts/` |
+| **Opencode** | `CLAUDE.md`, `AGENTS.md` | `.opencode/skills/`, `.opencode/commands/`, `.opencode/agents/`, `.opencode/plugins/` |
+
+## Placeholder Schema
+
+Templates use `{{PLACEHOLDER}}` syntax with `{{#FLAG}}...{{/FLAG}}` conditional blocks:
+
+| Placeholder | Default | Description |
+|-------------|---------|-------------|
+| `{{PROJECT_NAME}}` | — | Human-readable project name |
+| `{{PROJECT_SLUG}}` | — | URL-safe slug |
+| `{{BACKEND_PATH}}` | `backend` | Backend directory name |
+| `{{FRONTEND_PATH}}` | `frontend` | Frontend directory name |
+| `{{PYTHON_VERSION}}` | `3.12` | Python minor version |
+| `{{FASTAPI_VERSION}}` | `0.119+` | FastAPI version |
+| `{{REACT_VERSION}}` | `19` | React major version |
+| `{{STATE_MANAGER}}` | `zustand` | Frontend state manager |
+| `{{DB_PROVIDER}}` | `supabase` | Database provider |
+| `{{HAS_MLFLOW}}` | `no` | Include MLflow Prompt Registry rules |
+| `{{HAS_LANGGRAPH}}` | `no` | Include LangGraph agent rules |
+| `{{COVERAGE_AGGREGATE_BACKEND}}` | `70` | Aggregate backend coverage target |
+| `{{CALVER_VERSION}}` | today's date | Initial CalVer version |
+
+When a flag is `no`, `process-conditionals.py` strips the entire `{{#FLAG}}...{{/FLAG}}` block.
+
+## Built-in Skills
+
+| Skill | Platforms | Purpose |
+|-------|-----------|---------|
+| `bootstrap-harness` | Claude, Opencode | Interactive project scanner + renderer |
+| `gen-contract-test` | Claude, Opencode | Scaffold contract tests (TDD Article III) |
+| `create-migration` | Claude, Opencode | Validate/supabase-migration scaffolding |
+| `test-hygiene-scanner` | Claude, Opencode | Find hardcoded dates, AsyncMock misuse, cross-tier truncates |
+| `e2e-assertion-audit` | Claude, Opencode | Flag no-op assertions in E2E tests |
+
+## Workflow Pipeline
+
+Every project using these templates follows the 7-step pipeline:
+
+```
+1. Issue exists      →  GitHub issue tracking the work
+2. Failing test      →  Red test before implementation (TDD Article III)
+3. Green code        →  Minimal fix that makes test pass
+4. Preflight clean   →  lint / type / test all green
+5. PR opened         →  Reference issue, include checklist
+6. Comments addressed →  Every review comment resolved or replied
+7. Merge             →  Only after green preflight + resolved comments
+```
+
+Each step gates the next. No step may be skipped without explanation.
+
+## Pre-commit Hooks
+
+| Hook | Command | Blocks? |
+|------|---------|---------|
+| `check-no-skipped-tests.sh` | `bash .claude/hooks/check-no-skipped-tests.sh` | Yes — exits non-zero on skip/xfail |
+| `check-primitive-drift.sh` | `bash .claude/hooks/check-primitive-drift.sh` | Yes — exits non-zero on mirror mismatch |
+| `check-agent-drift.sh` | `bash .claude/hooks/check-agent-drift.sh` | Yes — exits non-zero on version contradictions |
+
+## Tech Stack Assumptions
+
+These templates are tuned for:
+
+- **Backend**: Python 3.12, FastAPI, Pydantic, async/await, `uv`
+- **Frontend**: React 19, TypeScript, Vite, Vitest, shadcn/ui, Tailwind CSS
+- **Database**: PostgreSQL (Supabase-first), no SQLAlchemy
+- **State**: Zustand (≤ 300 lines per store), typed service modules
+- **Tests**: pytest (backend) + vitest (frontend), contract → integration → e2e → unit
+
+## DRY Principle
+
+This system eliminates duplication by design:
+
+- **Single source of truth**: `_shared/articles/*.md` are rendered into all three harnesses
+- **Auto-generated mirrors**: Copilot instructions are never hand-edited; they are generated from Claude rules
+- **Conditional blocks**: `{{#HAS_MLFLOW}}...{{/HAS_MLFLOW}}` appears once per rule and is stripped when not applicable
+- **Snippet includes**: Shared fragments (error envelopes, PR checklists) are defined once and referenced
+
+## Customization
+
+### Semantic Tailoring
+
+For projects with special infrastructure (MLflow, LangGraph, payments, HIPAA), use the AI customization prompt:
+
+```bash
+# Use templates/scripts/customize-harness.md as a skill prompt
+customize-harness \
+  --project "MyProject: AI-powered analytics" \
+  --special-infra "mlflow, langgraph" \
+  --tier-adjustments "security:90, business:80, ml:60"
+```
+
+This removes irrelevant sections, adjusts coverage tiers, and suggests domain-specific agents.
+
+### Post-Customization Drift Checks
+
+After rendering into a project:
+
+```bash
+bash .claude/hooks/check-primitive-drift.sh   # mirror sync
+bash .claude/hooks/check-agent-drift.sh        # version consistency
+bash .claude/hooks/check-no-skipped-tests.sh   # hook syntax
+```
+
+## Updating Templates
+
+When a rule changes across all projects:
+
+1. Edit `_shared/articles/*.md` (the source of truth)
+2. Re-render into all projects with `bootstrap.sh`
+3. Run `check-primitive-drift.sh` to verify mirrors
+
+## Related Projects
+
+These templates are derived from the working harnesses of:
+
+- [`influencer-sync`](https://github.com/hybridindie/influencer-sync) — Creator platform with MLflow Prompt Registry
+- [`nomikailist`](https://github.com/hybridindie/nomikailist) — Anime/manga discovery with LangGraph recommendations
+
+Both projects maintain equivalent instruction harnesses using these same constitutional rules.
+
+## Versioning
+
+Templates follow CalVer: `YYYY.MM.DD[-N]`.
+
+Current: derived from `templates/_shared/articles/enforcement.md`.

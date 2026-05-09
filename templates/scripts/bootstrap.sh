@@ -182,6 +182,7 @@ for shared in "$TEMPLATES_DIR/_shared/articles/"*.md; do
     cicd.md)                dst_dir="$OUTPUT_DIR/.claude/rules" ;;
     enforcement.md)         dst_dir="$OUTPUT_DIR/.claude/rules" ;;
     primitive-drift.md)     dst_dir="$OUTPUT_DIR/.github/instructions" ;;
+    workflow.md)             dst_dir="$OUTPUT_DIR/.claude/rules" ;;
     *) echo "Unhandled shared article: $fname"; continue ;;
   esac
   substitute_placeholders "$shared" "$dst_dir/$fname"
