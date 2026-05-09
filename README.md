@@ -190,12 +190,12 @@ When a rule changes across all projects:
 2. Re-render into all projects with `bootstrap.sh`
 3. Run `check-primitive-drift.sh` to verify mirrors
 
-## Related Projects
+## Related Work
 
-These templates are derived from the working harnesses of multiple past projects and have evolved into what you see here.
+This approach synthesizes production patterns distilled over many iterations. The result is a battle-tested, self-validating instruction system that adapts to diverse stacks while remaining maintainable.
 
 ## Versioning
 
 Templates follow CalVer: `YYYY.MM.DD[-N]`.
 
-Current: derived from `templates/_shared/articles/enforcement.md`.
+Current: tracked by `templates/_shared/articles/enforcement.md`.
