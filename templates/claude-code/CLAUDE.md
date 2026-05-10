@@ -153,25 +153,16 @@ Architecture knowledge graphs built with graphify. Read the relevant report **be
 
 ## Skills
 
-Invoke with `/skill-name`. All skills live in `.claude/skills/`.
+Invoke with `/skill-name`. All skills live in `.claude/skills/`. Session-invariant skills listed below; niche workflows (plan writing, parallel dispatch, code review) are available on-demand.
 
 | Skill | When |
 |-------|------|
 | `brainstorming` | Before any new feature — structured design before code |
-| `writing-plans` | After design approval — bite-sized TDD implementation plan |
-| `subagent-driven-development` | Execute plans with parallel subagents + 2-stage review |
-| `finishing-a-development-branch` | PR creation, merge, cleanup |
 | `test-driven-development` | Any feature/bugfix — red-green-refactor |
-| `systematic-debugging` | Any bug or test failure |
-| `requesting-code-review` | After implementation, before merge |
-| `verification-before-completion` | Evidence-based completion claims |
-| `frontend-design` | UI components and pages |
-| `dispatching-parallel-agents` | 2+ independent tasks |
-| `create-migration` | Scaffold a {{DB_PROVIDER}} SQL migration (sql-standards.md compliant) |
-| `e2e-assertion-audit` | Scan E2E tests for no-op assertions and overly permissive checks |
 | `gen-contract-test` | Generate a contract test skeleton (TDD Article III) |
+| `create-migration` | Scaffold a {{DB_PROVIDER}} SQL migration (sql-standards.md compliant) |
 | `test-hygiene-scanner` | Triage hardcoded dates and AsyncMock misuse in the test suite |
-| `clock-injection-audit` | Scan all service files for bare `datetime.now()` without Clock injection |
+| `e2e-assertion-audit` | Scan E2E tests for no-op assertions and overly permissive checks |
 | `graph-query` | Query the graphify knowledge graphs |
 
 ## Architecture Milestones
