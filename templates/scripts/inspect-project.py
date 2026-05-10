@@ -390,6 +390,9 @@ class ProjectInspector:
                 python_version = read_text(pv).strip().splitlines()[0]
         if not python_version:
             python_version = "3.12"
+        # Clean trailing dots (e.g. "3.12." -> "3.12")
+        if isinstance(python_version, str):
+            python_version = python_version.rstrip(".")
 
         # FastAPI version
         fastapi_version = self.py_deps.get("fastapi")
@@ -436,12 +439,16 @@ class ProjectInspector:
         tailwind = self.detect_tailwind() if has_frontend else False
         zod_val = self.detect_zod() if has_frontend else False
 
+        def _clean_python_ver(v: str) -> str:
+            parts = v.split(".")
+            return ".".join(parts[:2]) if len(parts) >= 2 else v
+
         output: dict[str, Any] = {
             "mode": mode,
             "profile": profile,
             "project_name": self.root.name,
             "project_slug": re.sub(r"[^a-z0-9]", "", self.root.name.lower()),
-            "python_version": python_version[:5] if python_version else "3.12",
+            "python_version": _clean_python_ver(python_version) if python_version else "3.12",
             "fastapi_version": fastapi_version if has_fastapi else None,
             "react_version": react_version if has_frontend else None,
             "typescript_version": typescript_version if has_frontend else None,
