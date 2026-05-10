@@ -106,6 +106,22 @@ bash templates/scripts/bootstrap.sh \
 
 The script performs placeholder substitution, overlays profile-specific files (e.g. `profiles/mcp/overlays/backend/architecture.md`), then runs `process-conditionals.py` to strip irrelevant blocks.
 
+### Frontmatter Scope Personalization
+
+**Important:** `paths:` (Claude rules) and `applyTo:` (Copilot instructions) are personalized during rendering. After bootstrap, they contain your actual directory names:
+
+| Template Source | Rendered Claude Rule | Rendered Copilot Mirror |
+|-----------------|---------------------|------------------------|
+| `paths: ["{{BACKEND_PATH}}/src/libs/**/*.py"]` | `paths: ["backend/src/libs/**/*.py"]` | `applyTo: "backend/src/libs/**/*.py"` |
+
+**After initial setup**, if you manually add new `paths:` to `.claude/rules/*.md`, use **actual directory names** (not `{{PLACEHOLDER}}` syntax). Then regenerate mirrors:
+
+```bash
+python3 templates/scripts/generate-copilot-mirrors.py .
+```
+
+Or re-run the full bootstrap to re-substitute all placeholders.
+
 ---
 
 ## Phase 4 — Validation
