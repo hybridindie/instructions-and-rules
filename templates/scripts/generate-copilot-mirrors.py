@@ -56,15 +56,24 @@ def generate_mirror(claude_file, out_dir, entry, instructions_dir):
         text = f.read()
 
     fm, body = extract_frontmatter_and_body(text)
+
+    # Resolve description before branching (used in both paths)
+    description = entry.get('copilot_description', '')
+    if not description:
+        title_match = re.search(r'^# (.+)$', body, re.MULTILINE)
+        description = title_match.group(1).strip() if title_match else "Project rule"
+    description = description.replace('"', '\\"')
+
     if fm is None:
-        copilot_fm = '---\n---\n'
+        # Use mirror-pairs.json paths as fallback when source has no frontmatter
+        fallback_paths = entry.get('paths', [])
+        copilot_fm = f'---\ndescription: "{description}"\n'
+        if fallback_paths:
+            apply_to = ', '.join(fallback_paths)
+            copilot_fm += f'applyTo: "{apply_to}"\n'
+        copilot_fm += '---\n'
     else:
         paths = extract_paths(fm)
-        description = entry.get('copilot_description', '')
-        if not description:
-            title_match = re.search(r'^# (.+)$', body, re.MULTILINE)
-            description = title_match.group(1).strip() if title_match else "Project rule"
-        description = description.replace('"', '\\"')
 
         copilot_fm = f'---\ndescription: "{description}"\n'
         if paths:
