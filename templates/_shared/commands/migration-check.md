@@ -1,8 +1,8 @@
 ---
-description: Validate a Supabase SQL migration against sql-standards.md before committing
+description: Validate a Supabase SQL migration against sql-standards before committing
 ---
 
-Validate a migration file against `.claude/rules/database/sql-standards.md` checklist.
+Validate a migration file against `.claude/rules/database/sql-standards.md`.
 
 ## Steps
 
@@ -29,6 +29,6 @@ Validate a migration file against `.claude/rules/database/sql-standards.md` chec
 
 ## Usage
 
-```bash
-/migration-check supabase/migrations/20251212000001_new_table.sql
+```
+migration-check supabase/migrations/20251212000001_new_table.sql
 ```

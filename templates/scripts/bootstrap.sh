@@ -266,9 +266,12 @@ mkdir -p "$OUTPUT_DIR"
 
 echo "=== Rendering Shared Articles ==="
 
-# Walk all subdirs under _shared/ and route each .md via mirror-pairs.json
+# Walk all subdirs under _shared/ and route each .md via mirror-pairs.json.
+# Subdirs agents/ and commands/ are handled separately below.
 for shared_dir in "$TEMPLATES_DIR/_shared"/*; do
   [[ -d "$shared_dir" ]] || continue
+  basename_dir=$(basename "$shared_dir")
+  [[ "$basename_dir" == "agents" || "$basename_dir" == "commands" ]] && continue
   for shared in "$shared_dir/"*.md; do
     [[ -f "$shared" ]] || continue
     fname=$(basename "$shared")
@@ -284,6 +287,26 @@ for shared_dir in "$TEMPLATES_DIR/_shared"/*; do
     fi
   done
 done
+
+echo "=== Rendering Shared Agents ==="
+if [[ -d "$TEMPLATES_DIR/_shared/agents" ]]; then
+  mkdir -p "$OUTPUT_DIR/.claude/agents"
+  for shared in "$TEMPLATES_DIR/_shared/agents/"*.md; do
+    [[ -f "$shared" ]] || continue
+    fname=$(basename "$shared")
+    substitute_placeholders "$shared" "$OUTPUT_DIR/.claude/agents/$fname"
+  done
+fi
+
+echo "=== Rendering Shared Commands ==="
+if [[ -d "$TEMPLATES_DIR/_shared/commands" ]]; then
+  mkdir -p "$OUTPUT_DIR/.claude/commands"
+  for shared in "$TEMPLATES_DIR/_shared/commands/"*.md; do
+    [[ -f "$shared" ]] || continue
+    fname=$(basename "$shared")
+    substitute_placeholders "$shared" "$OUTPUT_DIR/.claude/commands/$fname"
+  done
+fi
 
 echo "=== Mirroring Claude Rules to Copilot Instructions ==="
 python3 "$SCRIPT_DIR/generate-copilot-mirrors.py" "$OUTPUT_DIR" "$TEMPLATES_DIR"

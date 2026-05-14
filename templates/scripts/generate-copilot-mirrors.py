@@ -23,7 +23,12 @@ def load_mirror_pairs(templates_dir):
     for entry in data.get('entries', []):
         claude_rel = entry['claude_file']
         pairs[claude_rel] = entry
-    return pairs, data.get('copilot_instructions_dir', '.github/instructions')
+    return (
+        pairs,
+        data.get('copilot_instructions_dir', '.github/instructions'),
+        data.get('agent_entries', []),
+        data.get('command_entries', []),
+    )
 
 
 def extract_frontmatter_and_body(text):
@@ -91,6 +96,68 @@ def generate_mirror(claude_file, out_dir, entry, instructions_dir):
     print(f"  Mirrored: .claude/rules/{entry['claude_file']} -> {instructions_dir}/{copilot_file}")
 
 
+def generate_agent_mirror(claude_file, out_dir, entry):
+    """Generate a Copilot .agent.md from a Claude agent source.
+
+    Claude frontmatter: name, description, model, color
+    Copilot frontmatter: name, description, argument-hint (model/color dropped)
+    Body: identical
+    """
+    with open(claude_file, 'r', encoding='utf-8') as f:
+        text = f.read()
+
+    fm, body = extract_frontmatter_and_body(text)
+
+    # Parse relevant fields from Claude frontmatter
+    name = ''
+    description = ''
+    if fm:
+        for line in fm.split('\n'):
+            if line.startswith('name:'):
+                name = line.split(':', 1)[1].strip().strip('"').strip("'")
+            elif line.startswith('description:'):
+                description = line.split(':', 1)[1].strip().strip('"').strip("'")
+
+    argument_hint = entry.get('argument_hint', '')
+
+    copilot_fm = '---\n'
+    if name:
+        copilot_fm += f'name: {name}\n'
+    if description:
+        copilot_fm += f'description: "{description}"\n'
+    if argument_hint:
+        copilot_fm += f'argument-hint: "{argument_hint}"\n'
+    copilot_fm += '---\n'
+
+    copilot_file = entry['copilot_file']
+    out_file = os.path.join(out_dir, entry['copilot_dir'], copilot_file)
+
+    os.makedirs(os.path.dirname(out_file), exist_ok=True)
+    with open(out_file, 'w', encoding='utf-8') as f:
+        f.write(copilot_fm + body)
+
+    print(f"  Agent mirror: {entry['claude_dir']}/{entry['source_file']} -> {entry['copilot_dir']}/{copilot_file}")
+
+
+def generate_command_mirror(claude_file, out_dir, entry):
+    """Generate a Copilot .prompt.md from a Claude command source.
+
+    Frontmatter and body are identical between platforms — only the filename
+    and target directory differ.
+    """
+    with open(claude_file, 'r', encoding='utf-8') as f:
+        text = f.read()
+
+    copilot_file = entry['copilot_file']
+    out_file = os.path.join(out_dir, entry['copilot_dir'], copilot_file)
+
+    os.makedirs(os.path.dirname(out_file), exist_ok=True)
+    with open(out_file, 'w', encoding='utf-8') as f:
+        f.write(text)
+
+    print(f"  Command mirror: {entry['claude_dir']}/{entry['source_file']} -> {entry['copilot_dir']}/{copilot_file}")
+
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: python generate-copilot-mirrors.py <output_dir> [templates_dir]")
@@ -101,7 +168,7 @@ def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     templates_dir = sys.argv[2] if len(sys.argv) > 2 else os.path.dirname(script_dir)
 
-    pairs, copilot_dir = load_mirror_pairs(templates_dir)
+    pairs, copilot_dir, agent_entries, command_entries = load_mirror_pairs(templates_dir)
     rules_dir = os.path.join(out_dir, '.claude', 'rules')
     instructions_out = os.path.join(out_dir, copilot_dir)
 
@@ -128,6 +195,26 @@ def main():
             mirrored += 1
 
     print(f"\nSummary: {mirrored} mirrored, {skipped} skipped")
+
+    # Generate agent mirrors
+    if agent_entries:
+        print("\n=== Generating Agent Mirrors ===")
+        for entry in agent_entries:
+            source_path = os.path.join(out_dir, entry['claude_dir'], entry['source_file'])
+            if not os.path.isfile(source_path):
+                print(f"  Skipped (not found): {entry['claude_dir']}/{entry['source_file']}")
+                continue
+            generate_agent_mirror(source_path, out_dir, entry)
+
+    # Generate command mirrors
+    if command_entries:
+        print("\n=== Generating Command Mirrors ===")
+        for entry in command_entries:
+            source_path = os.path.join(out_dir, entry['claude_dir'], entry['source_file'])
+            if not os.path.isfile(source_path):
+                print(f"  Skipped (not found): {entry['claude_dir']}/{entry['source_file']}")
+                continue
+            generate_command_mirror(source_path, out_dir, entry)
 
 
 if __name__ == '__main__':

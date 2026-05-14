@@ -201,6 +201,78 @@
       "render_dir": ".claude/rules",
       "copilot_description": "Error Budgets & Availability Targets",
       "paths": ["{{BACKEND_PATH}}/**/*.py", ".github/workflows/**", "observability/**"]
+    },
+    {
+      "article": "—",
+      "title": "Agentic Continuous Delivery (ACD)",
+      "claude_file": "agentic-workflow.md",
+      "copilot_file": "agentic-workflow.instructions.md",
+      "render_dir": ".claude/rules",
+      "copilot_description": "Agentic Continuous Delivery: agent delivery contract, ACD constraints, session discipline, and expert validation agents",
+      "paths": ["**/*"]
+    }
+  ],
+  "agent_entries": [
+    {
+      "title": "Backend Architect",
+      "source_file": "backend-architect.md",
+      "claude_dir": ".claude/agents",
+      "copilot_file": "backend-architect.agent.md",
+      "copilot_dir": ".github/agents",
+      "argument_hint": "Describe the feature, service, or change. Include domain context and any existing file paths."
+    },
+    {
+      "title": "Frontend Architect",
+      "source_file": "frontend-architect.md",
+      "claude_dir": ".claude/agents",
+      "copilot_file": "frontend-architect.agent.md",
+      "copilot_dir": ".github/agents",
+      "argument_hint": "Describe the UI feature, component, or page. Include mockups or wireframes if available."
+    },
+    {
+      "title": "Article Compliance Reviewer",
+      "source_file": "article-compliance-reviewer.md",
+      "claude_dir": ".claude/agents",
+      "copilot_file": "article-compliance-reviewer.agent.md",
+      "copilot_dir": ".github/agents",
+      "argument_hint": "Provide a diff, file list, or PR description to review for constitutional compliance."
+    }
+  ],
+  "command_entries": [
+    {
+      "title": "Preflight",
+      "source_file": "preflight.md",
+      "claude_dir": ".claude/commands",
+      "copilot_file": "pre-merge-verify.prompt.md",
+      "copilot_dir": ".github/prompts"
+    },
+    {
+      "title": "Migration Check",
+      "source_file": "migration-check.md",
+      "claude_dir": ".claude/commands",
+      "copilot_file": "migration-check.prompt.md",
+      "copilot_dir": ".github/prompts"
+    },
+    {
+      "title": "Start Session",
+      "source_file": "start-session.md",
+      "claude_dir": ".claude/commands",
+      "copilot_file": "start-session.prompt.md",
+      "copilot_dir": ".github/prompts"
+    },
+    {
+      "title": "End Session",
+      "source_file": "end-session.md",
+      "claude_dir": ".claude/commands",
+      "copilot_file": "end-session.prompt.md",
+      "copilot_dir": ".github/prompts"
+    },
+    {
+      "title": "Fix",
+      "source_file": "fix.md",
+      "claude_dir": ".claude/commands",
+      "copilot_file": "fix.prompt.md",
+      "copilot_dir": ".github/prompts"
     }
   ]
 }
