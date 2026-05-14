@@ -138,6 +138,9 @@ def generate_agent_mirror(claude_file, out_dir, entry):
 
     print(f"  Agent mirror: {entry['claude_dir']}/{entry['source_file']} -> {entry['copilot_dir']}/{copilot_file}")
 
+    if entry.get('opencode_dir'):
+        generate_opencode_agent_mirror(claude_file, out_dir, entry)
+
 
 def generate_command_mirror(claude_file, out_dir, entry):
     """Generate a Copilot .prompt.md from a Claude command source.
@@ -156,6 +159,81 @@ def generate_command_mirror(claude_file, out_dir, entry):
         f.write(text)
 
     print(f"  Command mirror: {entry['claude_dir']}/{entry['source_file']} -> {entry['copilot_dir']}/{copilot_file}")
+
+    if entry.get('opencode_dir'):
+        generate_opencode_command_mirror(claude_file, out_dir, entry)
+
+
+def generate_opencode_agent_mirror(claude_file, out_dir, entry):
+    """Generate an opencode .opencode/agents/*.md from a Claude agent source.
+
+    opencode agent frontmatter: description, mode: subagent, permission block.
+    The filename becomes the agent name — no 'name:' field needed.
+    model/color from Claude frontmatter are dropped (opencode uses different model IDs).
+    Body: identical to shared source.
+    """
+    with open(claude_file, 'r', encoding='utf-8') as f:
+        text = f.read()
+
+    fm, body = extract_frontmatter_and_body(text)
+
+    description = ''
+    if fm:
+        for line in fm.split('\n'):
+            if line.startswith('description:'):
+                description = line.split(':', 1)[1].strip().strip('"').strip("'")
+
+    oc_fm = '---\n'
+    if description:
+        oc_fm += f'description: "{description}"\n'
+    oc_fm += 'mode: subagent\n'
+    oc_fm += 'permission:\n'
+    oc_fm += '  edit: deny\n'
+    oc_fm += '  bash: deny\n'
+    oc_fm += '---\n'
+
+    source_file = entry['source_file']
+    opencode_dir = entry['opencode_dir']
+    out_file = os.path.join(out_dir, opencode_dir, source_file)
+
+    os.makedirs(os.path.dirname(out_file), exist_ok=True)
+    with open(out_file, 'w', encoding='utf-8') as f:
+        f.write(oc_fm + body)
+
+    print(f"  OpenCode agent: {entry['claude_dir']}/{source_file} -> {opencode_dir}/{source_file}")
+
+
+def generate_opencode_command_mirror(claude_file, out_dir, entry):
+    """Generate an opencode .opencode/commands/*.md from a Claude command source.
+
+    opencode command frontmatter: description only (Claude-specific fields stripped).
+    Same filename as Claude source. Body: identical.
+    """
+    with open(claude_file, 'r', encoding='utf-8') as f:
+        text = f.read()
+
+    fm, body = extract_frontmatter_and_body(text)
+
+    description = ''
+    if fm:
+        for line in fm.split('\n'):
+            if line.startswith('description:'):
+                description = line.split(':', 1)[1].strip().strip('"').strip("'")
+
+    oc_fm = '---\n'
+    if description:
+        oc_fm += f'description: "{description}"\n'
+    oc_fm += '---\n'
+
+    source_file = entry['source_file']
+    opencode_dir = entry['opencode_dir']
+    out_file = os.path.join(out_dir, opencode_dir, source_file)
+
+    os.makedirs(os.path.dirname(out_file), exist_ok=True)
+    with open(out_file, 'w', encoding='utf-8') as f:
+        f.write(oc_fm + body)
+
+    print(f"  OpenCode command: {entry['claude_dir']}/{source_file} -> {opencode_dir}/{source_file}")
 
 
 def main():
