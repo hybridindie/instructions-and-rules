@@ -4,15 +4,37 @@
 
 Generate equivalent instruction harnesses for GitHub Copilot, Claude Code, and Opencode with a single command. These templates codify Articles I–IX (library-first architecture, TDD mandate, structured errors, async-first, API contracts, security, CI integrity, enforcement) along with PostgreSQL schema standards, frontend conventions, and a complete workflow pipeline.
 
-## Quick Start
+## Install with AI (recommended)
+
+Clone this repo once. Then use the `install-harness` agent from any project:
+
+**Claude Code:**
+```
+# Open this genesis repo in Claude Code, then:
+@install-harness /absolute/path/to/your-project
+```
+
+**GitHub Copilot:**
+```
+# Open this genesis repo in VS Code, then use the install-harness agent:
+@install-harness /absolute/path/to/your-project
+```
+
+The agent will:
+1. Inspect the target project (stack, language, versions, dependencies)
+2. Show an **install plan** — what will be included and what will be omitted (e.g. no frontend rules if there is no frontend)
+3. Ask for confirmation before running
+4. Run bootstrap and report what was created
+
+## Quick Start (CLI)
 
 ```bash
 # 1. Auto-detect (recommended) — probes project, infers mode/profile, asks only unknowns
 cd your-project
-bash templates/scripts/bootstrap.sh --auto-detect --output-dir .
+bash /path/to/genesis/templates/scripts/bootstrap.sh --auto-detect --output-dir .
 
 # 2. Manual CLI (supply all values)
-bash templates/scripts/bootstrap.sh \
+bash /path/to/genesis/templates/scripts/bootstrap.sh \
   --project-name "YourProject" \
   --project-slug "yourproject" \
   --mode "full" \
