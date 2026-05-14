@@ -25,8 +25,13 @@ Copilot agents in this repo:
 - `/bootstrap-harness` — Auto-detect + render harness for new projects
 - `/gen-contract-test` — Scaffold contract tests per Article III
 - `/create-migration` — Supabase SQL migration scaffolding
+- `/migration-check` — Validate a migration file against sql-standards before committing
 - `/test-hygiene-scan` — Find hardcoded dates, AsyncMock misuse
 - `/e2e-assertion-audit` — Flag no-op assertions
+- `/pre-merge-verify` — Run all quality gates before merging a PR
+- `/start-session` — Initialize an ACD implementation session (validate spec artifacts, set scope)
+- `/end-session` — Close a session (validate gates, write context summary, commit)
+- `/fix` — Restore pipeline health when red before resuming feature work
 
 ### Updating Guidance
 

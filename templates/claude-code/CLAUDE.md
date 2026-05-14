@@ -165,6 +165,26 @@ Invoke with `/skill-name`. All skills live in `.claude/skills/`. Session-invaria
 | `e2e-assertion-audit` | Scan E2E tests for no-op assertions and overly permissive checks |
 | `graph-query` | Query the graphify knowledge graphs |
 
+## Commands
+
+Slash commands. All live in `.claude/commands/`. Run at any point in a session.
+
+| Command | When |
+|---------|------|
+| `/preflight` | Before every push — runs all CI-equivalent checks (lint, types, tests, constitution, skip-scan) |
+| `/start-session` | Start an ACD implementation session — validates spec artifacts, assembles context, sets scope |
+| `/end-session` | Close a session — validate gates, write context summary, commit |
+| `/fix` | Pipeline is red — diagnose and restore green before any feature work resumes |
+| `/migration-check <file>` | Validate a migration file against sql-standards.md before committing |
+
+## Glossary
+
+- **DomainError**: Structured base exception with stable `code` for clients
+- **Contract Test**: Validates externally visible interface/schema boundary
+- **Deterministic**: Same input → same output (time/randomness controlled)
+- **Idempotent**: Multiple identical invocations produce same final state
+- **Envelope**: JSON wrapper: `{"data": ...}` or `{"error": ...}`
+
 ## Architecture Milestones
 
 These are permanent architectural decisions — not a changelog. Check merged PRs for recent work.

@@ -102,3 +102,5 @@ ANTI-PATTERNS (BLOCKING):
 - Duplicate indexes
 - Unqualified table/function names
 - Missing input validation in RPC functions
+
+Use `/migration-check <file>` to validate a migration against this checklist before committing.

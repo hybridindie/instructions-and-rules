@@ -23,6 +23,16 @@ If you skip a step, you must name which one and why, in the same turn.
 
 Each step gates the next. You do not start step N until step N-1 is done.
 
+## MUST (Agent sessions only — run before Step 1)
+
+### Step 0 — Agent Delivery Contract
+
+Before any agent generates code, four artifacts must be human-approved: intent description, BDD scenarios, feature description (with architectural constraints), and acceptance criteria. See `/start-session` for the full procedure.
+
+- The agent does not write or modify the intent description or BDD scenarios
+- One BDD scenario per session; include the scope constraint in every implementation system prompt
+- When an agent encounters a feature description escalation trigger, it stops and asks
+
 ## MUST
 
 ### Step 1 — Issue exists
@@ -44,7 +54,7 @@ Each step gates the next. You do not start step N until step N-1 is done.
 
 ### Step 4 — Preflight clean
 
-Before pushing, on a clean checkout:
+Run `/preflight` to execute all pre-push checks automatically. Or individually:
 
 - `bash .claude/hooks/check-no-skipped-tests.sh` — zero skips
 - Backend touched: `cd {{BACKEND_PATH}} && {{TEST_BACKEND_CMD}} tests/contract tests/unit -n auto --no-cov` (and integration / e2e if relevant)
@@ -78,6 +88,9 @@ Before pushing, on a clean checkout:
 - Bundling unrelated drive-by fixes into a feature PR.
 - Pushing with a failing test "to get CI to run it."
 - Closing a review comment without a code change AND without a reply.
+- Agent session spans a commit boundary (context from two behaviors, contaminated bisect trail).
+- Agent resumes mid-feature without context reset (always restart from last committed state).
+- Agent generates code before intent description, BDD scenarios, and acceptance criteria are human-approved.
 - Merging while a comment is still unresolved because "it's a nit."
 
 ## Self-check before each step

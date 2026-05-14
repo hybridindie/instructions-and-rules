@@ -25,6 +25,8 @@ ANTI-PATTERNS:
 | Lint | ruff | Lint errors |
 | Security | bandit / dependency audit | High severity unresolved |
 | Contracts | contract tests | Schema drift |
+| Test Fidelity Agent *(planned)* | Expert validation agent (CI Stage 1) — activate after ≥20 calibration cycles | Agent-generated test code that omits edge cases or weakens assertions vs. the specification |
+| Architectural Conformance Agent *(planned)* | Expert validation agent (CD Stage 1) — activate after ≥20 calibration cycles | Implementation violating feature description constraints |
 
 ## PR Acceptance Checklist
 
@@ -39,15 +41,10 @@ ANTI-PATTERNS:
 - [ ] Article VII: Security (auth, secrets, encryption)
 - [ ] Article VIII: CI green (lint, type, tests, security)
 - [ ] Article IX: Spec references present
+- [ ] ACD (agent-generated only): Intent description, BDD scenarios, feature description, and acceptance criteria exist and are human-approved
+- [ ] ACD (agent-generated only): Commit tagged with agent identity and intent description reference (provenance)
+- [ ] ACD (agent-generated only): Session scope constraint was active; no out-of-scope changes bundled
 
 ## Versioning Policy (CalVer)
 
 Format: YYYY.MM.DD[-N]. Current version: {{CALVER_VERSION}}.
-
-## Glossary
-
-- **DomainError**: Structured base exception with stable `code` for clients
-- **Contract Test**: Validates externally visible interface/schema boundary
-- **Deterministic**: Same input -> same output (time/randomness controlled)
-- **Idempotent**: Multiple identical invocations produce same final state
-- **Envelope**: JSON wrapper: `{"data": ...}` or `{"error": ...}`

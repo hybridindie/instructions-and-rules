@@ -39,6 +39,8 @@ All new or refactored code MUST comply with the Constitutional Articles, grouped
 | PERF | Backend p95 latency SLOs. Frontend bundle budgets. Core Web Vitals. | `/.github/instructions/performance-budgets.instructions.md` |
 | ERRB | Availability SLOs. Burn rate alerts. SEV classification. Blameless post-mortems. | `/.github/instructions/error-budgets.instructions.md` |
 
+| ACD | ACD constraints, session discipline, expert validation agents, artifact authority. | `/.github/instructions/agentic-workflow.instructions.md` |
+
 > **When suggesting code, load the relevant scoped instruction for the file you're editing.** Do not restate the full article text.
 
 ## 3. Tech Stack & Architecture
@@ -74,29 +76,9 @@ Do NOT:
 - Return `dict[str, Any]` from service methods.
 - Use `asyncio.sleep()` in tests.
 
-## 5. Common Templates
+## 5. Code Patterns
 
-Test First Skeleton:
-```python
-# tests/contract/test_<service>_<action>.py
-import pytest
-from libs.<service>.models import <Model>
-
-@pytest.mark.asyncio
-async def test_<action>_contract__fails_without_required_field():
-    payload = {...}  # Missing required field
-    with pytest.raises(ValueError):
-        await <service>_service.<action>(payload)
-```
-
-Domain Service Function Skeleton:
-```python
-# Article I, III, V
-async def create_resource(payload: ResourceIn) -> ResourceOut:
-    # Validate (Article III tests enforce contracts)
-    # Interact with persistence via injected repository
-    return ResourceOut(...)
-```
+For code patterns and templates, load the relevant `/.github/instructions/` file for the domain you're working in (see the pointer table in Section 2). Do not write boilerplate from memory — read the scoped instruction first.
 
 ## 6. Acceptance Checklist (Apply Before Suggesting)
 

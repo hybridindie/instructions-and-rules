@@ -30,6 +30,7 @@ This repository uses a layered customization system for Copilot behavior.
 - `.github/instructions/documentation-standards.instructions.md`
 - `.github/instructions/performance-budgets.instructions.md`
 - `.github/instructions/error-budgets.instructions.md`
+- `.github/instructions/agentic-workflow.instructions.md`
 
 3. Agents
 - `.github/agents/backend-architect.agent.md`
@@ -40,9 +41,13 @@ This repository uses a layered customization system for Copilot behavior.
 - `.github/prompts/bootstrap-harness.prompt.md`
 - `.github/prompts/gen-contract-test.prompt.md`
 - `.github/prompts/create-migration.prompt.md`
+- `.github/prompts/migration-check.prompt.md`
 - `.github/prompts/test-hygiene-scan.prompt.md`
 - `.github/prompts/e2e-assertion-audit.prompt.md`
 - `.github/prompts/pre-merge-verify.prompt.md`
+- `.github/prompts/start-session.prompt.md`
+- `.github/prompts/end-session.prompt.md`
+- `.github/prompts/fix.prompt.md`
 
 5. Hook policies (deterministic runtime safeguards)
 - `.github/hooks/policy.json`
