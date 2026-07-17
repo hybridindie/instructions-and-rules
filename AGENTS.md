@@ -45,6 +45,7 @@ templates/
     articles/      ← Constitutional rules (rendered into all three harnesses)
     agents/        ← Shared agent definitions (Claude frontmatter → Copilot transformed)
     commands/      ← Shared commands/prompts (body identical across platforms)
+    skills/        ← Shared shippable skills (rendered into target .claude/ + .opencode/)
     database/      ← SQL and infrastructure rules
     frontend/      ← Frontend conventions
     mirror-pairs.json  ← Single source of truth for all mirror pairs

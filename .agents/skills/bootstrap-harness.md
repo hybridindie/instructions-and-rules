@@ -74,11 +74,14 @@ Run auto-detect first; use the manual probes only to fill gaps it leaves.
 python3 "$GENESIS/templates/scripts/inspect-project.py" "$TARGET"
 ```
 
-Parse the JSON and record: `mode` (full / backend-only / frontend-only),
-`profile` (fastapi / mcp / django / flask / empty), `project_name` / `project_slug`,
-`python_version`, `fastapi_version`, `react_version`, `vite_version`,
-`has_mlflow`, `has_langgraph`, `db_provider`, `state_manager`,
-`pkg_manager_backend`, `pkg_manager_frontend`.
+Parse the JSON and record what it emits: `mode` (full / backend-only / frontend-only),
+`profile` (fastapi / mcp / django / flask / generic-python / empty), `project_name` /
+`project_slug`, `python_version`, `react_version`, `typescript_version`, `vite_version`,
+`state_manager`, `pkg_manager_backend`, `pkg_manager_frontend`, `has_mlflow`,
+`has_langgraph`, `db_extensions`, `ui_library`, `tailwind`, `zod_validation`,
+`cicd_platform`, `confidence`. Some keys are conditional — e.g. `fastapi_version`
+appears only for FastAPI projects, and frontend keys only when a frontend exists.
+Treat any missing key as "let bootstrap use its default."
 
 **Manual fallback probes** (only for anything auto-detect returned empty). Run
 silently against `$TARGET`; record findings, don't dump raw output:

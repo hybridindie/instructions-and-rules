@@ -4,7 +4,20 @@
 
 Generate equivalent instruction harnesses for GitHub Copilot, Claude Code, and Opencode with a single command. These templates codify Articles I–IX (library-first architecture, TDD mandate, structured errors, async-first, API contracts, security, CI integrity, enforcement) along with PostgreSQL schema standards, frontend conventions, and a complete workflow pipeline.
 
-## Install with AI (recommended)
+## Install — one command (recommended)
+
+The repo is public, so from inside the project you want to tailor:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hybridindie/instructions-and-rules/main/install.sh | bash
+```
+
+This fetches the genesis repo and renders a harness tailored to the current
+directory via auto-detection — no clone, no auth. For the interactive
+plan-review path (Claude Code / Opencode) and all other routes, see
+[`INSTALL.md`](INSTALL.md).
+
+## Install with AI
 
 Clone this repo once. Then use the `install-harness` agent from any project:
 
@@ -50,6 +63,20 @@ Both approaches produce:
 - `.github/copilot-instructions.md` — Repo-wide Copilot guidance
 - `CLAUDE.md` + `AGENTS.md` — Master context files
 - `.opencode/` — Equivalent skills, commands, agents, plugins
+- `.claude/skills/` + `.opencode/skills/` — utility skills (create-migration,
+  gen-contract-test, test-hygiene-scanner, e2e-assertion-audit), rendered from
+  the single source in `templates/_shared/skills/`
+
+### What installs vs. what's repo-hosted
+
+This repo is two things. **What `bootstrap.sh` installs into a target project** is
+the *constitutional harness* above (Articles, rules, agents, commands, utility
+skills). The **Epic Scoping Skills** (`epic-composer`, `story-decomposer`,
+`task-decomposer`, …) are a *separate, repo-hosted* capability: they live under
+`.agents/` and depend on that structure (`.agents/templates/`, `.agents/evals/`),
+so they run in this genesis repo but are **not** shipped to target projects today.
+Shipping them would require bundling those dependencies — a future enhancement.
+See [`AGENTS.md`](AGENTS.md) for the full architecture.
 
 ## Architecture
 
