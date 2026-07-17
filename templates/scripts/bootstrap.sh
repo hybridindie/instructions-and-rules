@@ -271,7 +271,7 @@ echo "=== Rendering Shared Articles ==="
 for shared_dir in "$TEMPLATES_DIR/_shared"/*; do
   [[ -d "$shared_dir" ]] || continue
   basename_dir=$(basename "$shared_dir")
-  [[ "$basename_dir" == "agents" || "$basename_dir" == "commands" ]] && continue
+  [[ "$basename_dir" == "agents" || "$basename_dir" == "commands" || "$basename_dir" == "skills" ]] && continue
   for shared in "$shared_dir/"*.md; do
     [[ -f "$shared" ]] || continue
     fname=$(basename "$shared")
@@ -321,6 +321,23 @@ substitute_placeholders "$TEMPLATES_DIR/claude-code/AGENTS.md" "$OUTPUT_DIR/AGEN
 
 echo "=== Rendering Opencode Harness ==="
 render_harness "$TEMPLATES_DIR/opencode/.opencode" "$OUTPUT_DIR/.opencode"
+
+echo "=== Rendering Shared Skills ==="
+# Single source: templates/_shared/skills/<name>/ renders into every skill-aware
+# harness (Claude Code + Opencode) so shipped skills never drift across platforms.
+if [[ -d "$TEMPLATES_DIR/_shared/skills" ]]; then
+  for skill_dir in "$TEMPLATES_DIR/_shared/skills"/*/; do
+    [[ -d "$skill_dir" ]] || continue
+    sname=$(basename "$skill_dir")
+    for dest in ".claude/skills" ".opencode/skills"; do
+      mkdir -p "$OUTPUT_DIR/$dest/$sname"
+      for src in "$skill_dir"*; do
+        [[ -f "$src" ]] || continue
+        substitute_placeholders "$src" "$OUTPUT_DIR/$dest/$sname/$(basename "$src")"
+      done
+    done
+  done
+fi
 
 echo "=== Processing Conditional Blocks ==="
 python3 "$SCRIPT_DIR/process-conditionals.py" "$OUTPUT_DIR" \
