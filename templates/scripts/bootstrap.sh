@@ -339,6 +339,13 @@ if [[ -d "$TEMPLATES_DIR/_shared/skills" ]]; then
   done
 fi
 
+echo "=== Rendering Personal Workflow Profile ==="
+# Ships an editable copy of the user's cross-project conventions into the project.
+# customize-harness reads this on install and on every re-run.
+if [[ -f "$TEMPLATES_DIR/_shared/my-workflows.md" ]]; then
+  substitute_placeholders "$TEMPLATES_DIR/_shared/my-workflows.md" "$OUTPUT_DIR/my-workflows.md"
+fi
+
 echo "=== Processing Conditional Blocks ==="
 python3 "$SCRIPT_DIR/process-conditionals.py" "$OUTPUT_DIR" \
   "HAS_MLFLOW=$HAS_MLFLOW" \

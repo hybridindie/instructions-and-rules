@@ -178,7 +178,26 @@ in this skill or a template, not user error.
 
 ---
 
-## Phase 5 — Report
+## Phase 5 — Customize (tailor to the project + the user's workflows)
+
+The render produces a generic harness. Now tailor it. The bootstrap ships a
+`customize-harness` skill and an editable `my-workflows.md` into `$TARGET`, so:
+
+- Load and run the **`customize-harness`** skill against `$TARGET` (it is now at
+  `$TARGET/.claude/skills/customize-harness/`). It rewrites example names to the
+  project's domain, adjusts coverage tiers, and weaves the conventions from
+  `$TARGET/my-workflows.md` into `CLAUDE.md` / `AGENTS.md` / rules.
+- Always show its plan and get confirmation before it edits.
+- If `$TARGET/my-workflows.md` is unfilled (all placeholders), it skips the
+  workflow-weaving and just does domain tailoring — tell the user they can fill
+  it in and re-run `/customize-harness` anytime.
+
+This is the same skill the project keeps for repeatable re-tailoring — running it
+here is simply its first pass.
+
+---
+
+## Phase 6 — Report
 
 ```
 ✅ Harness installed in: <TARGET>
@@ -191,9 +210,10 @@ Created:
 
 Next steps:
   1. cd <TARGET>
-  2. Review CLAUDE.md — set the domain description and any placeholder values
-  3. Run: bash .claude/hooks/check-primitive-drift.sh
-  4. Commit: git add . && git commit -m "chore: install AI harness"
+  2. Fill in my-workflows.md with your conventions, then re-run /customize-harness
+  3. Review CLAUDE.md — confirm the domain tailoring and any placeholder values
+  4. Run: bash .claude/hooks/check-primitive-drift.sh
+  5. Commit: git add . && git commit -m "chore: install AI harness"
 ```
 
 ---
