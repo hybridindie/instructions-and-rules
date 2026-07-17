@@ -64,8 +64,19 @@ Both approaches produce:
 - `CLAUDE.md` + `AGENTS.md` — Master context files
 - `.opencode/` — Equivalent skills, commands, agents, plugins
 - `.claude/skills/` + `.opencode/skills/` — utility skills (create-migration,
-  gen-contract-test, test-hygiene-scanner, e2e-assertion-audit), rendered from
-  the single source in `templates/_shared/skills/`
+  gen-contract-test, test-hygiene-scanner, e2e-assertion-audit) plus
+  `customize-harness`, rendered from the single source in `templates/_shared/skills/`
+- `my-workflows.md` — an editable copy of your cross-project conventions
+
+### Boilerplate → tailored, and re-tailorable
+
+The render above is generic. The AI install path (the single prompt in
+[`INSTALL.md`](INSTALL.md)) then runs the shipped **`customize-harness`** skill,
+which rewrites example names to the project's domain, adjusts coverage tiers, and
+weaves your **`my-workflows.md`** conventions into `CLAUDE.md` / `AGENTS.md` /
+rules. Edit `templates/_shared/my-workflows.md` in this genesis repo once and
+every future install inherits it; each project also keeps its own copy so you can
+re-run `/customize-harness` as the project evolves.
 
 ### What installs vs. what's repo-hosted
 

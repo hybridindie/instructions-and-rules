@@ -46,6 +46,8 @@ templates/
     agents/        ← Shared agent definitions (Claude frontmatter → Copilot transformed)
     commands/      ← Shared commands/prompts (body identical across platforms)
     skills/        ← Shared shippable skills (rendered into target .claude/ + .opencode/)
+    my-workflows.md ← Your cross-project conventions; shipped into each project and
+                      applied by the customize-harness skill (edit once, all installs inherit)
     database/      ← SQL and infrastructure rules
     frontend/      ← Frontend conventions
     mirror-pairs.json  ← Single source of truth for all mirror pairs
