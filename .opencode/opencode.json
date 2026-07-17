@@ -1,0 +1,44 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "skills": {
+    "paths": [".opencode/skills"]
+  },
+  "instructions": ["AGENTS.md"],
+  "permission": {
+    "skill": {
+      "*": "allow",
+      "bootstrap-harness": "allow",
+      "epic-composer": "allow",
+      "epic-acceptance-linter": "allow",
+      "epic-interview": "allow",
+      "story-decomposer": "allow",
+      "task-decomposer": "allow"
+    }
+  },
+  "command": {
+    "bootstrap-harness": {
+      "description": "Scan a project, interview about unknowns, and generate a complete AI harness (Claude + Opencode + Copilot).",
+      "template": "Load the bootstrap-harness skill and follow its complete workflow.\n\nThe skill will direct you to read .agents/skills/bootstrap-harness.md. Run all five phases: probe the project, interview only for unresolved unknowns, render via templates/scripts/bootstrap.sh, validate the output, and report. Render into the output directory below (default: current directory).\n\n$ARGUMENTS"
+    },
+    "epic-composer": {
+      "description": "Compose an Epic from source material (transcripts, docs, notes).",
+      "template": "Load the epic-composer skill and follow its complete workflow on the source material below.\n\nThe skill will direct you to read .agents/skills/epic-composer.md for the full instructions. Follow all phases including synthesis, interview (if needed), drafting, and readiness assessment.\n\n$ARGUMENTS"
+    },
+    "epic-interview": {
+      "description": "Run Epic interview mode to close critical gaps.",
+      "template": "Load the epic-interview skill and follow its instructions on the current material and draft.\n\nThe skill will direct you to read .agents/skills/epic-interview.md. Do not rewrite the Epic — ask concise, high-value questions grouped by priority, then label the response state.\n\n$ARGUMENTS"
+    },
+    "epic-acceptance-linter": {
+      "description": "Lint acceptance criteria on an existing Epic draft.",
+      "template": "Load the epic-acceptance-linter skill and apply it to the acceptance criteria below.\n\nThe skill will direct you to read .agents/skills/epic-acceptance-linter.md. Review each criterion for observability, testability, specificity, outcome focus, non-conflict, and coverage. Label the response: PASS, NEEDS_REVISION, or BLOCKED.\n\n$ARGUMENTS"
+    },
+    "story-decomposer": {
+      "description": "Decompose a ready Epic into INVEST-compliant user stories.",
+      "template": "Load the story-decomposer skill and follow its instructions to decompose the Epic below.\n\nThe skill will direct you to read .agents/skills/story-decomposer.md. Verify the Epic is ready, map ACs to stories, write BDD acceptance criteria, apply INVEST, map dependencies, and assess readiness.\n\n$ARGUMENTS"
+    },
+    "task-decomposer": {
+      "description": "Break down a story into AI-executable engineering tasks.",
+      "template": "Load the task-decomposer skill and apply it to the story below.\n\nThe skill will direct you to read .agents/skills/task-decomposer.md. Draft specific tasks with file paths, APIs, and test paths. Lint for specificity and verifiability. Assess AI-parallelization.\n\n$ARGUMENTS"
+    }
+  }
+}
