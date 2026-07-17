@@ -137,6 +137,27 @@ When a flag is `no`, `process-conditionals.py` strips the entire `{{#FLAG}}...{{
 | `test-hygiene-scanner` | Claude, Opencode | Find hardcoded dates, AsyncMock misuse, cross-tier truncates |
 | `e2e-assertion-audit` | Claude, Opencode | Flag no-op assertions in E2E tests |
 
+## Epic Scoping Skills
+
+A separate skill suite (migrated from the standalone `prompts-skills` project)
+turns raw source material into implementable, parallel-first backlogs. Its
+shared content lives in `.agents/` and is wrapped for all three harnesses under
+`.claude/skills/`, `.github/skills/`, and `.opencode/skills/`.
+
+| Skill | Command | Purpose |
+|-------|---------|---------|
+| `epic-composer` | `/epic-composer` | Synthesize sources into an outcome-driven Epic |
+| `epic-interview` | `/epic-interview` | Close critical gaps before drafting |
+| `epic-acceptance-linter` | `/epic-acceptance-linter` | Lint acceptance-criteria quality |
+| `story-decomposer` | `/story-decomposer` | Decompose a ready Epic into INVEST stories |
+| `task-decomposer` | `/task-decomposer` | Break a story into AI-executable tasks |
+
+They hand off in sequence — compose → decompose → tasks — with each story
+fanning out into parallel-structured tasks. See **[`prompts-skills.md`](prompts-skills.md)**
+for the full guide (architecture, per-harness setup, hooks, and worked example
+workflows) and **[`AGENTS.md`](AGENTS.md)** for the concise cross-harness
+entrypoint.
+
 ## Workflow Pipeline
 
 Every project using these templates follows the 7-step pipeline:
