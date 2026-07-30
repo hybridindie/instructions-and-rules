@@ -1,8 +1,8 @@
 # AI Harness Templates
 
-**Constitutional AI instruction templates for Python (FastAPI, MCP, Django, Flask) and optional TypeScript/React projects.**
+**Constitutional AI instruction templates for Python (FastAPI, Flask, MCP) and TypeScript (React, Next.js) projects.**
 
-Generate equivalent instruction harnesses for GitHub Copilot, Claude Code, and Opencode with a single command. These templates codify Articles I–IX (library-first architecture, TDD mandate, structured errors, async-first, API contracts, security, CI integrity, enforcement) along with PostgreSQL schema standards, frontend conventions, and a complete workflow pipeline.
+Generate equivalent instruction harnesses for GitHub Copilot, Claude Code, and Opencode with a single command. Templates codify Articles I–X (library-first architecture, TDD mandate, structured errors, async-first, API contracts, security, CI integrity, enforcement, caching) along with PostgreSQL schema standards, frontend conventions, and a complete workflow pipeline.
 
 ## Install — one command (recommended)
 
@@ -35,9 +35,10 @@ Clone this repo once. Then use the `install-harness` agent from any project:
 
 The agent will:
 1. Inspect the target project (stack, language, versions, dependencies)
-2. Show an **install plan** — what will be included and what will be omitted (e.g. no frontend rules if there is no frontend)
+2. Show an **install plan** — what will be included and what will be omitted
 3. Ask for confirmation before running
-4. Run bootstrap and report what was created
+4. Run bootstrap, evaluate the harness fit (`/harness-eval`), and tailor (`/customize-harness`)
+5. Report what was created
 
 ## Quick Start (CLI)
 
@@ -54,46 +55,53 @@ bash /path/to/genesis/templates/scripts/bootstrap.sh \
   --profile "fastapi" \
   --has-mlflow "no" \
   --has-langgraph "no" \
+  --has-nextjs "no" \
   --output-dir "."
 ```
 
+### Post-bootstrap flow
+
+```
+bootstrap.sh     → render (deterministic: placeholders + overlays + conditionals)
+    ↓
+/harness-eval    → agent reads the actual code, evaluates stack-fit,
+                    trims rules that don't apply, suggests missing rules
+    ↓
+/customize-harness → agent tailors domain examples, coverage tiers,
+                      weaves my-workflows.md conventions
+```
+
 Both approaches produce:
-- `.claude/rules/` — Constitutional Articles I–IX (source of truth)
+- `.claude/rules/` — Constitutional Articles I–X + doctrine (source of truth)
 - `.github/instructions/` — Auto-mirrored Copilot instructions
 - `.github/copilot-instructions.md` — Repo-wide Copilot guidance
 - `CLAUDE.md` + `AGENTS.md` — Master context files
 - `.opencode/` — Equivalent skills, commands, agents, plugins
-- `.claude/skills/` + `.opencode/skills/` — utility skills (create-migration,
-  gen-contract-test, test-hygiene-scanner, e2e-assertion-audit) plus
-  `customize-harness`, rendered from the single source in `templates/_shared/skills/`
+- `.claude/skills/` + `.opencode/skills/` — utility skills + `customize-harness`
+- `docs/harness-eval.md` — evaluation prompt for `/harness-eval`
 - `my-workflows.md` — an editable copy of your cross-project conventions
-
-### Boilerplate → tailored, and re-tailorable
-
-The render above is generic. The AI install path (the single prompt in
-[`INSTALL.md`](INSTALL.md)) then runs the shipped **`customize-harness`** skill,
-which rewrites example names to the project's domain, adjusts coverage tiers, and
-weaves your **`my-workflows.md`** conventions into `CLAUDE.md` / `AGENTS.md` /
-rules. Edit `templates/_shared/my-workflows.md` in this genesis repo once and
-every future install inherits it; each project also keeps its own copy so you can
-re-run `/customize-harness` as the project evolves.
 
 ### What installs vs. what's repo-hosted
 
 This repo is two things. **What `bootstrap.sh` installs into a target project** is
-the *constitutional harness* above (Articles, rules, agents, commands, utility
-skills). The **Epic Scoping Skills** (`epic-composer`, `story-decomposer`,
-`task-decomposer`, …) are a *separate, repo-hosted* capability: they live under
-`.agents/` and depend on that structure (`.agents/templates/`, `.agents/evals/`),
-so they run in this genesis repo but are **not** shipped to target projects today.
-Shipping them would require bundling those dependencies — a future enhancement.
-See [`AGENTS.md`](AGENTS.md) for the full architecture.
+the *constitutional harness* (Articles, rules, agents, commands, utility skills,
+doctrine, harness-eval). The **Epic Scoping Skills** (`epic-composer`,
+`story-decomposer`, `task-decomposer`, …) are a *separate, repo-hosted*
+capability: they live under `.agents/` and run in this genesis repo. See
+[`AGENTS.md`](AGENTS.md) for the full architecture.
 
 ## Architecture
 
-### Shared Source of Truth
+### Single source, thin wrappers
 
-The `_shared/` directory contains the constitutional rules that are rendered into **all three harnesses**:
+Two systems share the same pattern:
+
+- **Genesis harness**: `templates/_shared/` → rendered into target projects by `bootstrap.sh`. Articles, agents, commands, doctrine, and shippable skills.
+- **Epic Scoping Skills**: `.agents/` → thin wrappers in `.claude/`, `.opencode/`, `.github/`. Skills, doctrine, templates, evals.
+
+**Golden rule:** Edit content in `.agents/` (epic skills) or `templates/_shared/` (genesis). Edit frontmatter in the harness wrappers. Never duplicate content into a wrapper. Shared rules referenced by multiple files live in a `doctrine/` layer — reference, don't restate.
+
+### Articles and doctrine
 
 | File | Article | Topic |
 |------|---------|-------|
@@ -105,41 +113,37 @@ The `_shared/` directory contains the constitutional rules that are rendered int
 | `articles/security.md` | VII | OAuth2/JWT, AES-256, secret hygiene |
 | `articles/cicd.md` | VIII | CI gates, deterministic builds |
 | `articles/enforcement.md` | IX | PR checklist, enforcement gates, versioning |
+| `articles/caching-strategy.md` | X | PG NOLOG tables, materialized views, HTTP cache headers |
 | `articles/workflow.md` | — | Step-by-step workflow pipeline (#1–7) |
 | `database/sql-standards.md` | — | PostgreSQL schema conventions |
 | `database/infrastructure.md` | — | PostgreSQL-only infrastructure |
 | `frontend/conventions.md` | — | React/TypeScript/Vite conventions |
 
+Shared rules referenced by multiple articles/agents live in
+`templates/_shared/doctrine/` (genesis) and `.agents/doctrine/` (epic skills).
+Each doctrine module is a single source of truth — edit once, all references
+inherit.
+
+### Profile overlays
+
+Some articles have profile-specific variants that replace the base article
+when the profile is selected:
+
+| Profile | Overlays | What changes |
+|---------|----------|-------------|
+| `flask` | 5 (architecture, api-design, testing, async-patterns, error-handling) | Flask blueprints, sync-first, test client, error handlers |
+| `mcp` | 2 (architecture, api-design) | MCP tools, resources, prompts, async server |
+| `nextjs` (`--has-nextjs yes`) | 1 (frontend/conventions) | App Router, Server Components, Server Actions |
+
 ### Mirror System
 
-`.claude/rules/*.md` (Claude) and `.github/instructions/*.instructions.md` (Copilot) are **body-identical mirrors**. They share the same content but have different frontmatter:
-
-- **Claude**: `paths:` globs (file-scoped rules)
-- **Copilot**: `description:` + `applyTo:` (scope + context hints)
-
-The `generate-copilot-mirrors.py` script creates Copilot mirrors automatically from Claude rules. Drift between mirrors is detected by `check-primitive-drift.sh`.
-
-```text
-Claude rules              Copilot instructions
-├── backend/
-│   ├── architecture.md →   backend-architecture.instructions.md
-│   ├── testing.md      →   backend-testing.instructions.md
-│   └── ...
-├── database/
-│   ├── sql-standards.md→   database-sql-standards.instructions.md
-│   └── ...
-├── frontend/
-│   └── conventions.md  →   frontend-conventions.instructions.md
-└── enforcement.md      →   enforcement.instructions.md
-```
+`.claude/rules/*.md` (Claude) and `.github/instructions/*.instructions.md` (Copilot) are **body-identical mirrors**. `generate-copilot-mirrors.py` creates Copilot mirrors from Claude rules. `check-primitive-drift.sh` detects mirror drift.
 
 ### Three Equivalent Harnesses
 
-Each platform receives the **same rules** but in its own format:
-
 | Platform | Entry Files | Ecosystem |
 |----------|-------------|-----------|
-| **Claude Code** | `CLAUDE.md`, `AGENTS.md` | `.claude/rules/`, `.claude/commands/`, `.claude/agents/`, `.claude/skills/`, `.claude/hooks/`, `.claude/scripts/` |
+| **Claude Code** | `CLAUDE.md`, `AGENTS.md` | `.claude/rules/`, `.claude/commands/`, `.claude/agents/`, `.claude/skills/`, `.claude/hooks/` |
 | **GitHub Copilot** | `.github/copilot-instructions.md` | `.github/instructions/`, `.github/rules/`, `.github/agents/`, `.github/prompts/` |
 | **Opencode** | `CLAUDE.md`, `AGENTS.md` | `.opencode/skills/`, `.opencode/commands/`, `.opencode/agents/`, `.opencode/plugins/` |
 
@@ -160,27 +164,53 @@ Templates use `{{PLACEHOLDER}}` syntax with `{{#FLAG}}...{{/FLAG}}` conditional 
 | `{{DB_PROVIDER}}` | `supabase` | Database provider |
 | `{{HAS_MLFLOW}}` | `no` | Include MLflow Prompt Registry rules |
 | `{{HAS_LANGGRAPH}}` | `no` | Include LangGraph agent rules |
+| `{{HAS_NEXTJS}}` | `no` | Use Next.js frontend overlay (App Router, Server Components) |
+| `{{HAS_SUPABASE}}` | derived | Supabase-specific local-dev commands in CLAUDE.md |
+| `{{HAS_POSTGRES}}` | derived | Raw-postgres local-dev commands in CLAUDE.md |
 | `{{COVERAGE_AGGREGATE_BACKEND}}` | `70` | Aggregate backend coverage target |
 | `{{CALVER_VERSION}}` | today's date | Initial CalVer version |
 
 When a flag is `no`, `process-conditionals.py` strips the entire `{{#FLAG}}...{{/FLAG}}` block.
 
+## Tech Stack Support
+
+| Profile | Backend | Frontend | Database | Detected By |
+|---------|---------|----------|----------|-------------|
+| `fastapi` (default) | FastAPI, Pydantic | React 19, TS, Vite (or Next.js) | PostgreSQL / Supabase | `pyproject.toml` + `package.json` |
+| `flask` | Flask | React 19, TS, Vite (or Next.js) | PostgreSQL / Supabase | `flask` in deps |
+| `mcp` | MCP server, Pydantic | None | None (stateless) | `mcp` in `pyproject.toml` deps |
+| `generic-python` | Python (no framework) | Optional | Optional | Fallback |
+
+**Frontend:** React + TypeScript + Vite (default), or Next.js (`--has-nextjs yes`).
+**Package managers:** uv (Python), npm or Bun (frontend).
+**Database:** PostgreSQL only — Supabase or raw postgres. No Redis, no external caches (caching via PG NOLOG tables — Article X).
+
 ## Built-in Skills
 
 | Skill | Platforms | Purpose |
 |-------|-----------|---------|
-| `bootstrap-harness` | Claude, Opencode | Interactive project scanner + renderer |
+| `bootstrap-harness` | Claude, Opencode | Interactive project scanner + renderer + evaluation + tailoring |
+| `customize-harness` | Claude, Opencode | Semantic domain tailoring (rename examples, adjust tiers, weave workflows) |
 | `gen-contract-test` | Claude, Opencode | Scaffold contract tests (TDD Article III) |
-| `create-migration` | Claude, Opencode | Validate/supabase-migration scaffolding |
+| `create-migration` | Claude, Opencode | Supabase SQL migration scaffolding |
 | `test-hygiene-scanner` | Claude, Opencode | Find hardcoded dates, AsyncMock misuse, cross-tier truncates |
 | `e2e-assertion-audit` | Claude, Opencode | Flag no-op assertions in E2E tests |
 
+## Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/preflight` | Run all CI-equivalent checks before pushing |
+| `/start-session` | Start an ACD implementation session |
+| `/end-session` | Close a session — validate gates, commit |
+| `/fix` | Pipeline is red — diagnose and restore green |
+| `/migration-check <file>` | Validate a migration against sql-standards.md |
+| `/harness-eval` | Evaluate harness stack-fit, trim, suggest missing rules |
+
 ## Epic Scoping Skills
 
-A separate skill suite (migrated from the standalone `prompts-skills` project)
-turns raw source material into implementable, parallel-first backlogs. Its
-shared content lives in `.agents/` and is wrapped for all three harnesses under
-`.claude/skills/`, `.github/skills/`, and `.opencode/skills/`.
+A separate skill suite turns raw source material into implementable,
+parallel-first backlogs. Shared content lives in `.agents/`.
 
 | Skill | Command | Purpose |
 |-------|---------|---------|
@@ -190,104 +220,36 @@ shared content lives in `.agents/` and is wrapped for all three harnesses under
 | `story-decomposer` | `/story-decomposer` | Decompose a ready Epic into INVEST stories |
 | `task-decomposer` | `/task-decomposer` | Break a story into AI-executable tasks |
 
-They hand off in sequence — compose → decompose → tasks — with each story
-fanning out into parallel-structured tasks. See **[`prompts-skills.md`](prompts-skills.md)**
-for the full guide (architecture, per-harness setup, hooks, and worked example
-workflows) and **[`AGENTS.md`](AGENTS.md)** for the concise cross-harness
-entrypoint.
+See **[`prompts-skills.md`](prompts-skills.md)** for the full guide and
+**[`AGENTS.md`](AGENTS.md)** for the concise cross-harness entrypoint.
 
-## Workflow Pipeline
+## Updating the Harness
 
-Every project using these templates follows the 7-step pipeline:
+### When a rule changes in the genesis repo
 
-```
-1. Issue exists      →  GitHub issue tracking the work
-2. Failing test      →  Red test before implementation (TDD Article III)
-3. Green code        →  Minimal fix that makes test pass
-4. Preflight clean   →  lint / type / test all green
-5. PR opened         →  Reference issue, include checklist
-6. Comments addressed →  Every review comment resolved or replied
-7. Merge             →  Only after green preflight + resolved comments
-```
+1. Edit the source: `templates/_shared/articles/<name>.md` (or `doctrine/`, `agents/`, `commands/`).
+2. Re-run bootstrap into target projects: `bash templates/scripts/bootstrap.sh --auto-detect --output-dir <target>`.
+3. Run drift check: `bash .claude/hooks/check-primitive-drift.sh`.
+4. In each target project: run `/harness-eval` to re-trim for the project's stack, then `/customize-harness` to re-tailor.
 
-Each step gates the next. No step may be skipped without explanation.
+### When the project's stack changes
 
-## Pre-commit Hooks
+1. Run `/harness-eval` — the agent reads the new stack, trims rules that no longer fit, suggests rules the new stack needs.
+2. Run `/customize-harness` — re-tailors domain examples and workflows.
+3. Optionally re-run `bootstrap.sh --auto-detect` if new profile overlays apply (e.g. switched from Vite to Next.js).
 
-| Hook | Command | Blocks? |
-|------|---------|---------|
-| `check-no-skipped-tests.sh` | `bash .claude/hooks/check-no-skipped-tests.sh` | Yes — exits non-zero on skip/xfail |
-| `check-primitive-drift.sh` | `bash .claude/hooks/check-primitive-drift.sh` | Yes — exits non-zero on mirror mismatch |
-| `check-agent-drift.sh` | `bash .claude/hooks/check-agent-drift.sh` | Yes — exits non-zero on version contradictions |
+### Editing contract
 
-## Tech Stack Assumptions
+- **Articles/agents/commands**: edit in `templates/_shared/`. Re-run bootstrap to re-render.
+- **Doctrine**: edit in `templates/_shared/doctrine/` (genesis) or `.agents/doctrine/` (epic skills). All references inherit.
+- **Frontmatter**: edit in the harness wrappers (`.claude/`, `.opencode/`, `.github/`), not in `.agents/`.
+- **Versioning**: bump `version:` in each file's header comment (patch/minor/major). See [`CONTRIBUTING-HARNESS.md`](CONTRIBUTING-HARNESS.md).
+- **Drift**: `check-primitive-drift.sh` catches mirror desync. `warn-pointer-edit` hooks warn on editing wrappers or doctrine.
 
-These templates support multiple stack profiles. Auto-detection selects the correct one:
+## Context Budget
 
-| Profile | Backend | Frontend | Database | Detected By |
-|---------|---------|----------|----------|-------------|
-| `fastapi+react` (default) | FastAPI, Pydantic | React 19, TypeScript, Vite | PostgreSQL / Supabase | `pyproject.toml` + `package.json` |
-| `fastapi` | FastAPI, Pydantic | None | PostgreSQL / Supabase | `pyproject.toml` only |
-| `mcp` | MCP server, Pydantic | None | None (stateless) | `mcp` in `pyproject.toml` deps |
-| `django` | Django | Optional | PostgreSQL | `django` in deps |
-| `flask` | Flask | Optional | PostgreSQL | `flask` in deps |
-
-Default stack (when auto-detect yields no clear signal):
-- **Backend**: Python 3.12, FastAPI, Pydantic, async/await, `uv`
-- **Frontend**: React 19, TypeScript, Vite, Vitest, shadcn/ui, Tailwind CSS
-- **Database**: PostgreSQL (Supabase-first), no SQLAlchemy
-- **State**: Zustand (≤ 300 lines per store), typed service modules
-- **Tests**: pytest (backend) + vitest (frontend), contract → integration → e2e → unit
-
-## DRY Principle
-
-This system eliminates duplication by design:
-
-- **Single source of truth**: `_shared/articles/*.md` are rendered into all three harnesses
-- **Auto-generated mirrors**: Copilot instructions are never hand-edited; they are generated from Claude rules
-- **Conditional blocks**: `{{#HAS_MLFLOW}}...{{/HAS_MLFLOW}}` appears once per rule and is stripped when not applicable
-- **Snippet includes**: Shared fragments (error envelopes, PR checklists) are defined once and referenced
-
-## Customization
-
-### Semantic Tailoring
-
-For projects with special infrastructure (MLflow, LangGraph, payments, HIPAA), use the AI customization prompt:
-
-```bash
-# Use templates/scripts/customize-harness.md as a skill prompt
-customize-harness \
-  --project "MyProject: AI-powered analytics" \
-  --special-infra "mlflow, langgraph" \
-  --tier-adjustments "security:90, business:80, ml:60"
-```
-
-This removes irrelevant sections, adjusts coverage tiers, and suggests domain-specific agents.
-
-### Post-Customization Drift Checks
-
-After rendering into a project:
-
-```bash
-bash .claude/hooks/check-primitive-drift.sh   # mirror sync
-bash .claude/hooks/check-agent-drift.sh        # version consistency
-bash .claude/hooks/check-no-skipped-tests.sh   # hook syntax
-```
-
-## Updating Templates
-
-When a rule changes across all projects:
-
-1. Edit `_shared/articles/*.md` (the source of truth)
-2. Re-render into all projects with `bootstrap.sh`
-3. Run `check-primitive-drift.sh` to verify mirrors
-
-## Related Work
-
-This approach synthesizes production patterns distilled over many iterations. The result is a battle-tested, self-validating instruction system that adapts to diverse stacks while remaining maintainable.
+The auto-load footprint per new session is ~3.4KB (~975 tokens, 0.5% of a 200K window). Reference sections are lazy-loaded on demand from `docs/agents-sections/`. Full pipeline runs (all skills + doctrine + rubrics + templates) peak at ~18K tokens (9.2% of window). See `AGENTS.md` for the section layout.
 
 ## Versioning
 
-Templates follow CalVer: `YYYY.MM.DD[-N]`.
-
-Current: tracked by `templates/_shared/articles/enforcement.md`.
+Templates follow CalVer: `YYYY.MM.DD[-N]`. Epic-scoping files carry a `version: x.y.z` in their header comment — see [`CONTRIBUTING-HARNESS.md`](CONTRIBUTING-HARNESS.md) for the bump policy.
