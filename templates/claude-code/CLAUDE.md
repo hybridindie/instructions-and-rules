@@ -47,11 +47,14 @@ These documents are the source of truth. Do NOT duplicate their content here:
 
 ### Local Development
 
-- {{DB_PROVIDER}} CLI for local PostgreSQL instance (`supabase/config.toml`)
+{{#HAS_SUPABASE}}- {{DB_PROVIDER}} CLI for local PostgreSQL instance (`supabase/config.toml`)
   - API: port 54321, DB: port 54322, Studio: port 54323
   - Migrations in `supabase/migrations/`, seeds in `supabase/seed.sql`
 - `supabase start` / `supabase stop` to manage local instance
-- `supabase db push` to apply migrations to remote
+- `supabase db push` to apply migrations to remote{{/HAS_SUPABASE}}
+{{#HAS_POSTGRES}}- PostgreSQL local instance via Docker Compose or local install
+  - Migrations in `{{BACKEND_PATH}}/migrations/`, applied via `psql` or your migration tool
+  - Connection string from environment (`DATABASE_URL`){{/HAS_POSTGRES}}
 
 ## GitHub Project Context
 
@@ -102,8 +105,9 @@ cd {{BACKEND_PATH}} && {{TEST_BACKEND_CMD}} tests/e2e -p no:xdist --no-cov
 cd {{FRONTEND_PATH}} && {{TEST_FRONTEND_CMD}}
 
 # Database
-supabase start
-supabase db push
+{{#HAS_SUPABASE}}supabase start
+supabase db push{{/HAS_SUPABASE}}
+{{#HAS_POSTGRES}}# Apply migrations via your migration tool (psql, alembic, etc.){{/HAS_POSTGRES}}
 ```
 
 {{CUSTOM_TECH_STACK}}

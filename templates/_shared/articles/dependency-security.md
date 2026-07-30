@@ -18,14 +18,14 @@ paths:
 - Security updates (CVE patches) have a 48-hour SLA for review and merge
 
 ### Lockfile Hygiene
-- `uv.lock`, `package-lock.json`, or `pnpm-lock.yaml` MUST be committed to version control
+- `uv.lock` and `package-lock.json` MUST be committed to version control
 - Lockfiles MUST NOT be silently mutated without review
 - CI MUST verify lockfile consistency: `uv sync --locked` or `npm ci` must pass
 
 ### Vulnerability Scanning
 - CI pipeline MUST run dependency vulnerability scans on every PR
 - Python: `pip-audit` or `safety check`
-- Node.js: `npm audit` or `yarn audit`
+- Node.js: `npm audit`
 - Fail CI on any HIGH or CRITICAL severity CVE that has a patched version available
 - Suppressed CVEs require: documented risk acceptance, expiration date, and security team sign-off
 
