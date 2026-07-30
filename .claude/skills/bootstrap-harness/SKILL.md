@@ -1,12 +1,15 @@
 ---
 name: bootstrap-harness
-description: Scan a project, interview the user about unknowns, and generate a complete AI harness (Copilot + Claude + Opencode) with Constitutional Articles I–IX
-user-invocable: true
-disable-model-invocation: true
-arguments:
-  - name: output-dir
-    description: "Directory to write the harness into (default: current directory)"
-    required: false
+description: >
+  Scan a project, interview the user about unknowns, and generate a complete
+  AI harness (Copilot + Claude + Opencode) with Constitutional Articles I–IX.
+  Trigger words: bootstrap harness, generate harness, install harness, scaffold
+  AI rules, set up Claude and Opencode rules, tailor this repo for my project.
+when_to_use: >
+  Trigger phrases: "bootstrap harness", "generate harness", "install harness",
+  "scaffold AI rules", "set up Claude and Opencode rules", "tailor this repo
+  for my project". Use when the user wants to install or tailor an AI harness
+  into a target project.
 ---
 
 Read and follow the complete instructions at `.agents/skills/bootstrap-harness.md` —
