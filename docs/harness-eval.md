@@ -168,6 +168,97 @@ Produce the final report:
   `.claude/rules/` files (the rendered copies in the target project). Don't
   touch `templates/` or the genesis repo.
 
+## Format contract
+
+The harness has established conventions. When you trim, edit, or create
+rule files, maintain them. Breaking these causes drift across harnesses
+and confusing the model that loads the rules.
+
+### Article structure
+
+Every rule file in `.claude/rules/` follows this shape:
+
+```markdown
+---
+paths:
+  - "{{BACKEND_PATH}}/src/libs/**/*.py"
+  - "{{BACKEND_PATH}}/app/**/*.py"
+---
+
+# <Title> (Article <N>)
+
+## MUST
+- <hard rules>
+
+## SHOULD
+- <soft rules>
+
+## ANTI-PATTERNS (BLOCKING)
+- <forbidden patterns>
+
+## Enforcement Checklist
+- [ ] <checklist items>
+```
+
+Not every article has all four sections (MUST/SHOULD/ANTI-PATTERNS/
+Enforcement Checklist), but the sections that exist use these exact
+headings. Preserve them when trimming.
+
+### Frontmatter paths
+
+The `paths:` frontmatter tells Claude Code and Copilot when to auto-load
+the rule based on the file being edited. When you trim an article:
+- If the article no longer applies at all, remove it (and its paths).
+- If you trim a section, update the paths to match what the article still
+  covers.
+- Use `{{BACKEND_PATH}}` / `{{FRONTEND_PATH}}` placeholders in paths —
+  bootstrap substitutes them. In a rendered project these are already
+  replaced with concrete values (e.g. `backend/`).
+
+### The golden rule: reference, don't restate
+
+The harness has a doctrine layer (`.claude/rules/doctrine/`) holding
+shared rules referenced by multiple articles and agents. When you add or
+edit content:
+- If a rule is shared across 2+ articles, it belongs in `doctrine/` —
+  create or edit a doctrine file and reference it, don't inline the rule.
+- If a rule is specific to one article, keep it inline.
+- Never duplicate a rule that already lives in `doctrine/` — reference the
+  path instead: `Applies .claude/rules/doctrine/<name>.md`.
+
+### Cross-harness sync
+
+The harness targets three platforms: Claude Code, GitHub Copilot, and
+Opencode. When you add, remove, or rename a rule file:
+
+| Action | Claude Code | Copilot | Opencode | CLAUDE.md |
+|--------|-------------|---------|----------|-----------|
+| **Add article** | Create `.claude/rules/<path>/<name>.md` | Create `.github/instructions/<name>.instructions.md` (same body, Copilot frontmatter: `description` + `applyTo`) | (auto-discovered from `.claude/rules/` via bootstrap — no manual step in a rendered project) | Add to Authoritative References if top-level |
+| **Remove article** | Delete `.claude/rules/<path>/<name>.md` | Delete `.github/instructions/<name>.instructions.md` | (auto-cleaned on next bootstrap) | Remove from references if listed |
+| **Trim article** | Edit `.claude/rules/<path>/<name>.md` in place | Re-mirror: copy the trimmed body to `.github/instructions/<name>.instructions.md` | (auto-mirrored on next bootstrap) | No change unless the trim removes a referenced capability |
+| **Add doctrine** | Create `.claude/rules/doctrine/<name>.md` | (not mirrored — doctrine is referenced by articles, not loaded directly) | (not mirrored) | No change — doctrine is referenced by articles, not CLAUDE.md |
+
+If you're in a rendered target project (not the genesis repo), the Copilot
+mirror is the one that matters — keep it in sync manually after editing
+the Claude rule. The next `bootstrap.sh` re-render will fix any drift, but
+until then the two must match.
+
+### CLAUDE.md references
+
+`CLAUDE.md` lists top-level rules in the "Authoritative References" section
+and the "Tech Stack" section. When you remove an article, also remove its
+reference from CLAUDE.md. When you add an article, add it to the
+Authoritative References list if it's a cross-cutting rule (not a
+path-scoped one that auto-loads via frontmatter).
+
+### Agent files
+
+If the stack change affects how an agent should behave (e.g. switching from
+FastAPI to Flask changes the backend-architect's routing rules), also
+propose edits to `.claude/agents/<agent>.md`. The agents reference doctrine
+files by path — if you add or remove a doctrine file, update the agent's
+references to match.
+
 ## When to run this
 
 - After `bootstrap.sh` renders the harness into a new project.
