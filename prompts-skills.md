@@ -14,10 +14,16 @@ top-level `README.md` and `CLAUDE.md`.
 
 Shared content lives in `.agents/` as plain markdown — no frontmatter, no
 harness-specific fields. Each harness has its own thin, frontmatter-only
-wrapper files that reference the shared content by path.
+wrapper files that reference the shared content by path. Rules shared across
+multiple skills and rubrics live in `.agents/doctrine/` and are referenced
+rather than restated — this is what keeps the skills from drifting apart.
 
 ```
-.agents/   Shared content — skills, templates, evals   ← EDIT HERE
+.agents/   Shared content — skills, doctrine, templates, evals   ← EDIT HERE
+   │  ├── skills/     epic-* skills (procedure + doctrine pointers)
+   │  ├── doctrine/   shared rules referenced by multiple skills and rubrics
+   │  ├── templates/  epic/story/traceability shells
+   │  └── evals/      readiness rubrics (assess against doctrine, don't restate)
    │
    │  wrapped by thin, frontmatter-only pointers per harness:
    ├── Opencode        .opencode/skills/<name>/SKILL.md   + opencode.json commands
@@ -28,7 +34,9 @@ wrapper files that reference the shared content by path.
 The full file tree is under [Layout](#layout).
 
 **Golden rule:** Edit content in `.agents/`. Edit frontmatter in the harness
-wrappers. Never duplicate content into a wrapper.
+wrappers. Never duplicate content into a wrapper. When a rule is shared by
+two or more skills/rubrics, it belongs in `.agents/doctrine/` — edit there
+once; all references inherit.
 
 ## Layout
 
@@ -36,10 +44,17 @@ wrappers. Never duplicate content into a wrapper.
 .agents/                          # Shared content — edit here
   skills/
     epic-composer.md               # Main skill body
-    epic-acceptance-linter.md      # Acceptance criteria linter body
+    epic-acceptance-linter.md      # Acceptance criteria linter body (canonical AC-rules applier)
     epic-interview.md              # Guided interview body
     story-decomposer.md            # Story decomposition body
     task-decomposer.md             # Task breakdown + AI-parallelization body
+  doctrine/                        # Shared rules referenced by multiple skills and rubrics
+    acceptance-criteria-rules.md   # The six AC linting rules — single source
+    parallelization-doctrine.md   # Contract → tracks/waves → integration
+    ai-readable-spec-rules.md      # Name files/APIs, exists-vs-new, no pronouns
+    source-discipline.md           # Don't invent / surface unknowns / label inferred
+    review-checkpoint.md           # Present → ask → incorporate → declare-or-loop
+    context-discovery.md           # Greenfield/brownfield probe
   templates/epic/
     epic-shell.md                  # Epic structural skeleton
     story-shell.md                 # Story backlog structural skeleton
@@ -195,10 +210,12 @@ Every skill can be invoked **two ways**:
 ## Hooks
 
 The hooks matter only when **editing this repo** — they don't affect using the
-skills. Each harness ships a non-blocking "pointer-edit" guardrail that enforces
-the golden rule: if you try to edit a thin wrapper (in `.opencode/`, `.claude/`,
-or `.github/`) instead of the canonical content in `.agents/`, the hook fires a
-reminder. It warns; it never blocks the edit.
+skills. Each harness ships a non-blocking "pointer-edit" guardrail that
+enforces the golden rule: it fires a reminder (warns; never blocks) if you try
+to edit a thin wrapper (in `.opencode/`, `.claude/`, or `.github/`) instead of
+the canonical content in `.agents/`, **or** if you edit a load-bearing file
+under `.agents/doctrine/` — those are referenced by path from multiple
+skills and rubrics, so edits there propagate everywhere.
 
 | Harness | Config | Event | Mechanism |
 |---|---|---|---|
