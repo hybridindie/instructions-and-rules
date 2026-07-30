@@ -82,7 +82,6 @@ from typing import Any
 BACKEND_PACKAGES = {
     "fastapi": ("fastapi", r'"fastapi(?:\[[^\]]*\])?"\s*:?\s*["\']?\~?\>?\=?\s*[0-9.+\*a-z]+'),
     "flask": ("flask", r'"flask"\s*:?\s*["\']?\~?\>?\=?\s*[0-9.+\*a-z]+'),
-    "django": ("django", r'"django"\s*:?\s*["\']?\~?\>?\=?\s*[0-9.+\*a-z]+'),
     "mcp": ("mcp", r'"mcp"'),
     "uvicorn": ("uvicorn", r'"uvicorn"'),
     "httpx": ("httpx", r'"httpx"'),
@@ -95,14 +94,10 @@ BACKEND_PACKAGES = {
 
 FRONTEND_PACKAGES = {
     "react": ("react", r'"react"\s*:?\s*["\']?\~?\>?\=?\s*[0-9.+\*a-z]+'),
-    "vue": ("vue", r'"vue"\s*:?\s*["\']?\~?\>?\=?\s*[0-9.+\*a-z]+'),
     "next": ("next", r'"next"\s*:?\s*["\']?\~?\>?\=?\s*[0-9.+\*a-z]+'),
-    "svelte": ("svelte", r'"svelte"\s*:?\s*["\']?\~?\>?\=?\s*[0-9.+\*a-z]+'),
-    "angular": ("angular", r'"angular"'),
     "vite": ("vite", r'"vite"\s*:?\s*["\']?\~?\>?\=?\s*[0-9.+\*a-z]+'),
     "zustand": ("zustand", r'"zustand"'),
     "redux": ("redux", r'"redux"'),
-    "pinia": ("pinia", r'"pinia"'),
     "tailwindcss": ("tailwindcss", r'"tailwindcss"'),
 }
 
@@ -296,23 +291,33 @@ class ProjectInspector:
             return True
         return "fastapi" in self.sniff_imports("*.py", limit=5)
 
-    def sniff_django(self) -> bool:
-        if "django" in self.py_deps:
-            return True
-        return "django" in self.sniff_imports("*.py", limit=5)
-
     def sniff_flask(self) -> bool:
         if "flask" in self.py_deps:
             return True
         return "flask" in self.sniff_imports("*.py", limit=5)
 
     def sniff_frontend(self) -> bool:
-        if any(k in self.js_deps for k in ("react", "vue", "next", "svelte", "angular")):
+        if any(k in self.js_deps for k in ("react", "next")):
             return True
         # Look for common frontend files
-        for name in ("vite.config.ts", "vite.config.js", "next.config.js", "src/App.tsx", "src/main.tsx", "index.html"):
+        for name in ("vite.config.ts", "vite.config.js", "next.config.js", "next.config.ts", "src/App.tsx", "src/main.tsx", "index.html"):
             if (self.root / name).is_file():
                 return True
+        return False
+
+    def sniff_nextjs(self) -> bool:
+        """Detect Next.js specifically (vs plain React+Vite)."""
+        if "next" in self.js_deps:
+            return True
+        for name in ("next.config.js", "next.config.ts", "next.config.mjs"):
+            if (self.root / name).is_file():
+                return True
+        # App Router signal
+        if (self.root / "app").is_dir() and any(
+            (self.root / "app" / f).exists()
+            for f in ("layout.tsx", "layout.jsx", "page.tsx", "page.jsx")
+        ):
+            return True
         return False
 
     # ── Phase 3: Config & infra ───
@@ -359,17 +364,15 @@ class ProjectInspector:
 
         has_mcp = self.sniff_mcp()
         has_fastapi = self.sniff_fastapi()
-        has_django = self.sniff_django()
         has_flask = self.sniff_flask()
         has_frontend = self.sniff_frontend()
+        has_nextjs = self.sniff_nextjs() if has_frontend else False
 
         # Profile selection: FastAPI takes priority; MCP alone is secondary
         if has_fastapi:
             profile = "fastapi"
         elif has_mcp and not has_fastapi:
             profile = "mcp"
-        elif has_django:
-            profile = "django"
         elif has_flask:
             profile = "flask"
         else:
@@ -416,11 +419,11 @@ class ProjectInspector:
         # Package manager
         uv = self.detect_uv()
         pkg_backend = "uv" if uv else "pip"
-        pkg_frontend = "npm"
-        if (self.root / "pnpm-lock.yaml").is_file():
-            pkg_frontend = "pnpm"
-        elif (self.root / "yarn.lock").is_file():
-            pkg_frontend = "yarn"
+        # Frontend package manager: Bun if bun.lockb, otherwise npm
+        if (self.root / "bun.lockb").is_file():
+            pkg_frontend = "bun"
+        else:
+            pkg_frontend = "npm"
 
         # DB
         db_provider = self.detect_db()
@@ -458,10 +461,13 @@ class ProjectInspector:
             "pkg_manager_backend": pkg_backend,
             "pkg_manager_frontend": pkg_frontend if has_frontend else None,
             "test_backend_cmd": f"{pkg_backend} run pytest" if uv else "pytest",
-            "test_frontend_cmd": f"npx vitest run" if has_frontend else None,
+            "test_frontend_cmd": (
+                "bun test" if pkg_frontend == "bun" else "npx vitest run"
+            ) if has_frontend else None,
             "db_extensions": [],
             "has_mlflow": has_mlflow,
             "has_langgraph": has_langgraph,
+            "has_nextjs": has_nextjs,
             "tailwind": tailwind,
             "zod_validation": zod_val,
             "cicd_platform": self.detect_ci(),

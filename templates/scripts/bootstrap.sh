@@ -38,6 +38,7 @@ FRONTEND_STORE_EXAMPLES="auth, analytics, content"
 DB_EXTENSIONS="pgvector, pgmq, HSTORE"
 HAS_MLFLOW="no"
 HAS_LANGGRAPH="no"
+HAS_NEXTJS="no"
 CICD_PLATFORM="github-actions"
 E2E_TOOL="playwright"
 UI_LIBRARY="shadcn/ui"
@@ -78,6 +79,7 @@ while [[ $# -gt 0 ]]; do
     --db-extensions) DB_EXTENSIONS="$2"; shift 2 ;;
     --has-mlflow) HAS_MLFLOW="$2"; shift 2 ;;
     --has-langgraph) HAS_LANGGRAPH="$2"; shift 2 ;;
+    --has-nextjs) HAS_NEXTJS="$2"; shift 2 ;;
     --cicd-platform) CICD_PLATFORM="$2"; shift 2 ;;
     --e2e-tool) E2E_TOOL="$2"; shift 2 ;;
     --ui-library) UI_LIBRARY="$2"; shift 2 ;;
@@ -120,6 +122,8 @@ if [[ $AUTO_DETECT -eq 1 ]]; then
       STATE_MANAGER=$(python3 -c "import sys,json; d=json.load(sys.stdin); v=d.get('state_manager',''); print(v if v else 'zustand')" <<< "$DETECTED")
       TAILWIND=$(python3 -c "import sys,json; print('yes' if json.load(sys.stdin).get('tailwind',False) else 'no')" <<< "$DETECTED")
       ZOD_VALIDATION=$(python3 -c "import sys,json; print('yes' if json.load(sys.stdin).get('zod_validation',False) else 'no')" <<< "$DETECTED")
+      PKG_MANAGER_FRONTEND=$(python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('pkg_manager_frontend','npm'))" <<< "$DETECTED")
+      HAS_NEXTJS=$(python3 -c "import sys,json; print('yes' if json.load(sys.stdin).get('has_nextjs',False) else 'no')" <<< "$DETECTED")
     fi
 
     # Apply detected overrides only where CLI did not already specify
@@ -170,6 +174,18 @@ if [[ -z "$REPO_ORG" ]]; then REPO_ORG="$PROJECT_SLUG"; fi
 if [[ -z "$REPO_NAME" ]]; then REPO_NAME="$PROJECT_SLUG"; fi
 if [[ -z "$CALVER_VERSION" ]]; then CALVER_VERSION="$(date +%Y.%m.%d)"; fi
 
+# Derive DB conditionals from DB_PROVIDER
+if [[ "$DB_PROVIDER" == "supabase" ]]; then
+  HAS_SUPABASE="yes"
+  HAS_POSTGRES="no"
+elif [[ "$DB_PROVIDER" == "postgres" ]]; then
+  HAS_SUPABASE="no"
+  HAS_POSTGRES="yes"
+else
+  HAS_SUPABASE="no"
+  HAS_POSTGRES="no"
+fi
+
 if [[ "$PKG_MANAGER_BACKEND" == "uv" ]]; then
   TEST_BACKEND_CMD="uv run pytest"
   LINT_BACKEND_CMD="uv run ruff check ."
@@ -184,8 +200,12 @@ if [[ "$PKG_MANAGER_FRONTEND" == "npm" ]]; then
   TEST_FRONTEND_CMD="npx vitest run"
   LINT_FRONTEND_CMD="npm run lint"
   TYPE_FRONTEND_CMD="npm run type-check"
+elif [[ "$PKG_MANAGER_FRONTEND" == "bun" ]]; then
+  TEST_FRONTEND_CMD="bun test"
+  LINT_FRONTEND_CMD="bun run lint"
+  TYPE_FRONTEND_CMD="bun run type-check"
 else
-  TEST_FRONTEND_CMD="vitest run"
+  TEST_FRONTEND_CMD="npx vitest run"
   LINT_FRONTEND_CMD="npm run lint"
   TYPE_FRONTEND_CMD="npm run type-check"
 fi
@@ -327,6 +347,48 @@ for entry in data.get('doctrine_entries', []):
   substitute_placeholders "$src" "$dst_dir/$(basename "$src")"
 done
 
+echo "=== Applying Profile Overlays ==="
+# If a profile is set (mcp, flask), overlay its article replacements on top
+# of the rendered articles. Overlay files at profiles/<profile>/overlays/
+# replace the base article of the same name.
+if [[ -n "$PROFILE" && "$PROFILE" != "fastapi" ]]; then
+  OVERLAY_DIR="$TEMPLATES_DIR/_shared/profiles/$PROFILE/overlays"
+  if [[ -d "$OVERLAY_DIR" ]]; then
+    find "$OVERLAY_DIR" -name "*.md" -type f | while read -r overlay_src; do
+      rel="${overlay_src#$OVERLAY_DIR/}"
+      fname=$(basename "$overlay_src")
+      found_dst=$(find "$OUTPUT_DIR/.claude/rules" -name "$fname" -type f 2>/dev/null | head -1)
+      if [[ -n "$found_dst" ]]; then
+        substitute_placeholders "$overlay_src" "$found_dst"
+        echo "  Overlaid: $PROFILE/$rel -> ${found_dst#$OUTPUT_DIR/}"
+      else
+        dst_dir="$OUTPUT_DIR/.claude/rules/$(dirname "$rel")"
+        mkdir -p "$dst_dir"
+        substitute_placeholders "$overlay_src" "$dst_dir/$fname"
+        echo "  Overlaid (new): $PROFILE/$rel -> .claude/rules/$(dirname "$rel")/$fname"
+      fi
+    done
+  else
+    echo "  No overlay directory for profile '$PROFILE' — using base articles"
+  fi
+fi
+
+# Next.js frontend overlay (applies on top of any backend profile)
+if [[ "$HAS_NEXTJS" == "yes" ]]; then
+  OVERLAY_DIR="$TEMPLATES_DIR/_shared/profiles/nextjs/overlays"
+  if [[ -d "$OVERLAY_DIR" ]]; then
+    find "$OVERLAY_DIR" -name "*.md" -type f | while read -r overlay_src; do
+      rel="${overlay_src#$OVERLAY_DIR/}"
+      fname=$(basename "$overlay_src")
+      found_dst=$(find "$OUTPUT_DIR/.claude/rules" -name "$fname" -type f 2>/dev/null | head -1)
+      if [[ -n "$found_dst" ]]; then
+        substitute_placeholders "$overlay_src" "$found_dst"
+        echo "  Overlaid: nextjs/$rel -> ${found_dst#$OUTPUT_DIR/}"
+      fi
+    done
+  fi
+fi
+
 echo "=== Mirroring Claude Rules to Copilot Instructions ==="
 python3 "$SCRIPT_DIR/generate-copilot-mirrors.py" "$OUTPUT_DIR" "$TEMPLATES_DIR"
 
@@ -369,6 +431,9 @@ echo "=== Processing Conditional Blocks ==="
 python3 "$SCRIPT_DIR/process-conditionals.py" "$OUTPUT_DIR" \
   "HAS_MLFLOW=$HAS_MLFLOW" \
   "HAS_LANGGRAPH=$HAS_LANGGRAPH" \
+  "HAS_NEXTJS=$HAS_NEXTJS" \
+  "HAS_SUPABASE=$HAS_SUPABASE" \
+  "HAS_POSTGRES=$HAS_POSTGRES" \
   "TAILWIND=$TAILWIND" \
   "ZOD_VALIDATION=$ZOD_VALIDATION"
 
