@@ -2,13 +2,18 @@
   story-rubric.md — Readiness rubric for story backlog
   Referenced by: .agents/skills/story-decomposer.md (Phase 5)
   Input format: story backlog follows .agents/templates/epic/story-shell.md
-  version: 2.1.0, owner: John D
+  doctrine: .agents/doctrine/parallelization-doctrine.md,
+            .agents/doctrine/acceptance-criteria-rules.md,
+            .agents/doctrine/ai-readable-spec-rules.md
+  version: 2.2.0, owner: John D
 -->
 
 # Story Readiness Rubric
 
 Use this rubric to assess whether a story backlog is ready for
-implementation by AI coding agents.
+implementation by AI coding agents. This rubric **assesses** — it does not
+teach. Where a dimension's criteria are defined elsewhere, the dimension
+references that source instead of restating it.
 
 ## Input format
 
@@ -18,65 +23,66 @@ The story backlog should follow the structure in
 ## Dimensions
 
 ### INVEST Criteria (critical — must pass)
-1. **INVEST: Independent** — Can each story be completed without waiting
-   on another (except for explicitly mapped dependencies)?
-2. **INVEST: Negotiable** — Is the story a starting point for
-   conversation, not a fixed contract? Does it leave room for
-   implementation decisions?
-3. **INVEST: Valuable** — Does each story deliver measurable value to a
-   user, the business, or the team (for spikes/technical stories)?
-4. **INVEST: Estimable** — Can a developer or AI agent reasonably
-   estimate the effort? Are the scope and complexity clear enough?
-5. **INVEST: Small** — Is each story completable in 1-3 days by a single
-   developer?
-6. **INVEST: Testable** — Does each story have BDD acceptance criteria
-   that can be verified with a pass/fail test?
+1. **INVEST: Independent** — Gap if any story cannot be completed without
+   waiting on another (except explicitly mapped dependencies).
+2. **INVEST: Negotiable** — Gap if any story is a fixed contract leaving no
+   room for implementation decisions.
+3. **INVEST: Valuable** — Gap if any story delivers no measurable value to
+   a user, the business, or the team (spikes/technical stories).
+4. **INVEST: Estimable** — Gap if any story's scope or complexity is too
+   unclear to estimate.
+5. **INVEST: Small** — Gap if any story exceeds 1-3 days for a single
+   developer.
+6. **INVEST: Testable** — Gap if any story lacks BDD acceptance criteria
+   verifiable with a pass/fail test.
 
 ### Quality Criteria (non-critical — minor gaps allowed)
-7. **Vertical slicing** — Does each user story deliver end-to-end value
-   (not a horizontal layer like "database" or "API only")? Are technical
-   stories used only for genuine prerequisites?
-8. **Epic coverage** — Is every Epic acceptance criterion covered by at
-   least one user story? Are Epic constraints covered by technical or
-   spike stories?
-9. **Scope discipline** — Do all stories fall within the Epic's in-scope
-   items? Are no out-of-scope items introduced?
-10. **NFR traceability** — Do stories that touch performance, security,
-    accessibility, or compliance paths reference the relevant Epic NFRs?
-11. **Dependency ordering and execution sequence** — Is there a clear,
-    acyclic dependency graph with an explicit execution sequence grouped
-    into parallel waves? Are sequential gates minimized? Does every
-    story have a "Parallelizable with" or "sequential" annotation? Are
-    sprint assignments consistent with wave ordering?
-12. **Epic back-link** — Does every story include an "Epic: [title]"
-    back-link field? Does every story's "Epic ACs covered" trace to a
-    real Epic AC? Do technical/spike stories trace to Epic constraints?
-13. **Acceptance criteria quality** — Do all story acceptance criteria
-    pass the linting rules (observability, testability, specificity,
-    outcome focus, non-conflict, coverage)?
+7. **Vertical slicing** — Gap if any user story is a horizontal layer
+   ("database", "API only") or technical stories are used beyond genuine
+   prerequisites.
+8. **Epic coverage** — Gap if any Epic AC is not covered by a user story,
+   or any Epic constraint lacks a technical/spike story.
+9. **Scope discipline** — Gap if any story falls outside the Epic's
+   in-scope items.
+10. **NFR traceability** — Gap if stories touching performance, security,
+    accessibility, or compliance paths do not reference the relevant Epic NFRs.
+11. **Dependency ordering + execution sequence** — assesses
+    `.agents/doctrine/parallelization-doctrine.md`. Gap if the dependency
+    graph is cyclic, lacks an explicit parallel-wave execution sequence,
+    sequential gates are not minimized, any story lacks a
+    "Parallelizable with"/"sequential" annotation, or sprint assignments
+    are inconsistent with wave ordering.
+12. **Epic back-link** — Gap if any story lacks an "Epic: [title]"
+    back-link, its "Epic ACs covered" does not trace to a real Epic AC, or
+    a technical/spike story does not trace to an Epic constraint.
+13. **Acceptance criteria quality** — assesses
+    `.agents/doctrine/acceptance-criteria-rules.md`. Gap if any story's
+    acceptance criteria fail one of those rules (observability,
+    testability, specificity, outcome focus, non-conflict, coverage).
 
 ### AI-Readiness Criteria (non-critical — minor gaps allowed)
-14. **Task breakdown** — Does every story include a task breakdown where
-    each task is specific enough for an AI coding agent to execute
-    without asking clarifying questions? Are file paths, component names,
-    and API endpoints named where known?
-15. **AI-parallelization structure** — Do all M and L stories have
-    tasks structured as parallel tracks (shared contract → parallel
-    tracks → integration)? Is the parallel structure determined before
-    task drafting, not as an afterthought?
-16. **Story traceability** — Does every story trace back to Epic ACs
-    and, through the Epic's traceability map, to original source
-    material? Is the source type (explicit/inferred/unresolved) noted?
-17. **Risk and assumption surfacing** — Does every story list
+14. **Task breakdown** — Gap if any story lacks a task breakdown where
+    each task is specific enough for an AI coding agent to execute without
+    clarifying questions, or file paths/component names/API endpoints are
+    not named where known.
+15. **AI-parallelization structure** — assesses
+    `.agents/doctrine/parallelization-doctrine.md`. Gap if any M or L story
+    lacks tasks structured as parallel tracks (shared contract → parallel
+    tracks → integration), or the parallel structure was determined after
+    task drafting rather than before.
+16. **Story traceability** — Gap if any story does not trace back to Epic
+    ACs and (through the Epic's traceability map) to original source
+    material, or the source type (explicit/inferred/unresolved) is not
+    noted.
+17. **Risk and assumption surfacing** — Gap if any story lacks
     story-specific risks (with impact) and assumptions (with consequence
-    if wrong)?
-18. **Feature flag and rollback** — Do stories that modify existing
-    behavior specify a feature flag? Does every story specify a rollback
-    approach?
-19. **AI-readable language** — Are stories and tasks written with
-    specific component/file/API names, clear distinction between existing
-    vs. new code, and no ambiguous pronouns? Could an AI agent implement
-    the story without re-interpreting requirements?
+    if wrong).
+18. **Feature flag and rollback** — Gap if stories modifying existing
+    behavior lack a feature flag, or any story lacks a rollback approach.
+19. **AI-readable language** — assesses `.agents/doctrine/ai-readable-spec-rules.md`.
+    Gap if stories/tasks use ambiguous pronouns, omit specific
+    component/file/API names, fail to distinguish existing vs. new code,
+    or an AI agent would need to re-interpret requirements to implement.
 
 ## Readiness levels
 
@@ -94,27 +100,6 @@ Assign a readiness level based on the number and criticality of gaps:
 - **Critical (must pass)**: 1-6 (all INVEST criteria)
 - **Non-critical (can have minor gaps)**: 7-13 (quality criteria),
   14-19 (AI-readiness criteria)
-
-## Checklist
-- Is each story independent (except mapped dependencies)?
-- Is each story negotiable (not a fixed implementation contract)?
-- Does each story deliver user/business/team value?
-- Can each story be estimated?
-- Is each story completable in 1-3 days?
-- Does each story have BDD acceptance criteria?
-- Are user stories vertically sliced? Are technical stories justified?
-- Is every Epic AC covered? Are constraints covered by tech/spike stories?
-- Do all stories stay within Epic scope?
-- Do stories reference applicable Epic NFRs?
-- Is the execution sequence grouped into parallel waves with minimal sequential gates?
-- Does every story have an Epic back-link and trace to real Epic ACs?
-- Do all story acceptance criteria pass the linter?
-- Does every story have specific, AI-executable tasks?
-- Are M/L story tasks structured as parallel tracks (contract → tracks → integration)?
-- Does every story trace to Epic ACs and source material?
-- Does every story list risks and assumptions?
-- Do risky stories have feature flags? Does every story have a rollback plan?
-- Are stories written in AI-readable language (specific names, no ambiguity)?
 
 ## Output format
 

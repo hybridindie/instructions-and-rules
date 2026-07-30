@@ -3,13 +3,17 @@
   Referenced by: .agents/skills/epic-composer.md (Phase 5), .agents/skills/epic-acceptance-linter.md
   Input format: epic_draft follows .agents/templates/epic/epic-shell.md,
                 traceability_map follows .agents/templates/epic/traceability-template.md
-  version: 3.1.0, owner: John D
+  doctrine: .agents/doctrine/acceptance-criteria-rules.md,
+            .agents/doctrine/source-discipline.md
+  version: 3.2.0, owner: John D
 -->
 
 # Epic Readiness Rubric
 
 Use this rubric to assess whether an Epic is ready for decomposition into
-features, stories, and tasks.
+features, stories, and tasks. This rubric **assesses** — it does not teach.
+Where a dimension's criteria are defined elsewhere, the dimension references
+that source instead of restating it.
 
 ## Input format
 
@@ -28,10 +32,10 @@ Score each Pass/Gap. Assign Gap when its failing condition holds.
 5. Constraints and dependencies — Gap if known constraints or dependencies are absent.
 6. Assumptions and risks — Gap if material assumptions or risks are unstated.
 7. Edge cases and validations — Gap if major unhappy paths or validations are missing.
-8. Acceptance criteria quality — Gap if any AC is unobservable or lacks a pass/fail test.
+8. Acceptance criteria quality — assesses `.agents/doctrine/acceptance-criteria-rules.md`. Gap if any AC fails one of those rules (observability, testability, specificity, outcome focus, non-conflict, coverage).
 9. Success measures and metrics — Gap if there is no outcome metric, or baseline/target is unmarked.
 10. Traceability — Gap if any scope item or AC lacks a source link.
-11. Explicit unknowns and open questions — Gap if unknowns are hidden or presented as fact.
+11. Explicit unknowns and open questions — assesses `.agents/doctrine/source-discipline.md`. Gap if unknowns are hidden, presented as fact, or inferred content is not labeled.
 
 ## Readiness levels
 
@@ -52,19 +56,6 @@ Assign a readiness level based on the number and criticality of gaps:
   6. Assumptions and risks, 7. Edge cases and validations,
   8. Acceptance criteria quality, 9. Success measures and metrics,
   10. Traceability, 11. Explicit unknowns and open questions
-
-## Checklist
-- Is the current state problem clearly described?
-- Is the desired future state outcome-focused?
-- Are in-scope and out-of-scope items explicit?
-- Are key users and stakeholders identified?
-- Are constraints and dependencies captured?
-- Are assumptions and risks listed?
-- Are major edge cases and validations represented?
-- Are acceptance criteria testable and specific?
-- Are success measures defined?
-- Is traceability present for major claims?
-- Are important unknowns made explicit?
 
 ## Output format
 

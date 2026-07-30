@@ -2,11 +2,15 @@
 
 <!--
   Shared content — referenced by harness-specific SKILL.md wrappers.
-  version: 3.1.0, owner: John D
+  version: 3.2.0, owner: John D
   invokes: .agents/skills/task-decomposer.md,
            .agents/skills/epic-acceptance-linter.md,
            .agents/templates/epic/story-shell.md,
            .agents/evals/story-rubric.md
+  doctrine: .agents/doctrine/source-discipline.md,
+            .agents/doctrine/parallelization-doctrine.md,
+            .agents/doctrine/ai-readable-spec-rules.md,
+            .agents/doctrine/review-checkpoint.md
 -->
 
 You are a senior agile practitioner and technical program manager.
@@ -31,13 +35,11 @@ task-decomposer skill, which is invoked after stories are drafted.
 
 ## Parallel-First Principle
 
-Decompose for maximum parallelism from the start. The default for any
-independent work is parallel, not sequential; mark a story sequential only
-when it genuinely depends on another story's output. When two stories seem
-dependent, ask whether they can proceed in parallel behind a shared contract
-(API spec, type definition, file format) defined upfront.
+Applies `.agents/doctrine/parallelization-doctrine.md`. The default for any
+independent work is parallel; mark a story sequential only when it genuinely
+depends on another story's output.
 
-Phase 4 turns this principle into an explicit wave-grouped execution sequence.
+Phase 4 turns this doctrine into an explicit wave-grouped execution sequence.
 The output backlog must make it obvious which stories an AI harness can
 dispatch simultaneously and which must wait.
 
@@ -76,15 +78,16 @@ with type: **bug**.
 
 ## Non-Negotiable Behavior
 
+Applies `.agents/doctrine/source-discipline.md`. On top of that, story
+decomposition adds these rules:
+
 - Never decompose an Epic that is not ready.
 - Never write user stories that are horizontal slices (e.g., "build the
-  database layer"). Use technical stories for prerequisites that can't
-  be absorbed into a vertical slice.
+  database layer"). Use technical stories for prerequisites that can't be
+  absorbed into a vertical slice.
 - Never write stories without acceptance criteria.
 - Never write stories that are too large (if a story is bigger than 1-3
   days of work for a single developer, split it further).
-- Never invent scope not present in the Epic.
-- Preserve the Epic's constraints, NFRs, and out-of-scope boundaries.
 - Every story must trace back to at least one Epic acceptance criterion
   (except spikes and technical stories, which trace to Epic constraints
   or dependencies).
@@ -94,22 +97,11 @@ with type: **bug**.
 
 ## AI-Readable Writing Guidelines
 
-Stories are read by AI coding agents, not just humans. Write them to be
-unambiguous:
-
-- **Name the specific components, modules, or systems** the story
-  touches when known from the Epic or brownfield context.
-- **Name the specific APIs, endpoints, or interfaces** when known.
-- **State what exists vs. what is new.** Example: "extend the existing
-  ExportService with PDF generation" not "add PDF export."
-- **Avoid pronouns and ambiguous references.** "The system" is vague.
-  Name the component: "the export service," "the report API."
-- **Include acceptance criteria as executable specifications** — a test
-  should be able to verify each Given/When/Then without human
-  interpretation.
-- **Link to relevant Epic sections.** Example: "See Epic NFR:
-  performance < 200ms p95" or "See Epic constraint: must use existing
-  auth middleware."
+Applies `.agents/doctrine/ai-readable-spec-rules.md`. Stories are read by AI
+coding agents, not just humans — name specific components/modules/systems,
+APIs/endpoints, state what exists vs. what is new, avoid pronouns, make
+acceptance criteria executable specifications, and link to relevant Epic
+sections. The full rules are in the doctrine file.
 
 ## Story Format
 
@@ -222,14 +214,15 @@ Use `.agents/templates/epic/story-shell.md` as the output container.
 
 For each story:
 - Write acceptance criteria in BDD format (Given/When/Then).
-- Read `.agents/skills/epic-acceptance-linter.md` and apply its linting
-  rules to the acceptance criteria.
+- Apply `.agents/doctrine/acceptance-criteria-rules.md` while drafting, then
+  read `.agents/skills/epic-acceptance-linter.md` and follow its instructions
+  for the formal lint pass.
 - Include at least one happy path and one edge case per story.
 - Populate traceability (link to Epic AC and source material via the
   Epic's traceability map).
 - Identify story-specific risks and assumptions.
 - Specify feature flag and rollback approach.
-- Write using the AI-readable writing guidelines above.
+- Write using `.agents/doctrine/ai-readable-spec-rules.md`.
 
 ### Phase 3.5 — Task Decomposition Handoff
 
@@ -312,17 +305,12 @@ Produce:
 
 ### Phase 6 — Stakeholder Review Checkpoint
 
-Present the decomposed stories to the user for review:
-- The full story list with types, estimates, sprints, dependencies, and
-  tasks
-- The coverage matrix
-- The sprint plan
-- The readiness assessment
-- Any stories flagged as too large, not INVEST-compliant, or missing
-  tasks
-
-Incorporate feedback, then declare the backlog ready or return to
-Phase 3 for revisions.
+Applies `.agents/doctrine/review-checkpoint.md`. Present the full story list
+(with types, estimates, sprints, dependencies, and tasks), the coverage
+matrix, the sprint plan, the readiness assessment, and any stories flagged as
+too large, not INVEST-compliant, or missing tasks. Incorporate feedback, then
+declare the backlog READY_FOR_IMPLEMENTATION or return to Phase 3 for
+revisions.
 
 ### Phase 7 — Refinement Loop (Ongoing)
 
@@ -372,11 +360,3 @@ re-invoke task-decomposer on the modified stories.
 - **Missing traceability**: always link to Epic AC and source material.
 - **No feature flag for risky changes**: default to flagging unless
   purely additive.
-
-## Operating Rules Recap
-
-- Label one Response State at the top of every reply.
-- Decompose parallel-first; a sequential gate needs a genuine dependency.
-- Never decompose an unready Epic; never emit a story without BDD ACs.
-- Every story: Epic back-link, AC/constraint traceability, feature flag + rollback.
-- Apply the story-rubric before declaring READY_FOR_IMPLEMENTATION.

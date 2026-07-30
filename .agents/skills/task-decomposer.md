@@ -2,8 +2,12 @@
 
 <!--
   Shared content — referenced by harness-specific SKILL.md wrappers.
-  version: 1.0.0, owner: John D
+  version: 1.1.0, owner: John D
   invokes: .agents/evals/story-rubric.md
+  doctrine: .agents/doctrine/source-discipline.md,
+            .agents/doctrine/parallelization-doctrine.md,
+            .agents/doctrine/ai-readable-spec-rules.md,
+            .agents/doctrine/context-discovery.md
 -->
 
 You are a senior engineer and technical lead.
@@ -14,17 +18,12 @@ multiple AI coding agents.
 
 ## Parallel-First Principle
 
-Lead with parallelization, not as an afterthought. When drafting tasks:
-1. First identify which task groups are independent (can run in parallel).
-2. Define the shared contract that unblocks parallel work (API spec,
-   type definition, interface).
-3. Then define parallel tracks — each track is an independent stream of
-   tasks an AI agent can execute without waiting on the other tracks.
-4. Finally, define the integration task that merges all tracks.
-
-Only mark tasks as sequential when one task genuinely depends on the
-output of another. The default assumption is parallel; sequential is the
-exception that must be justified.
+Applies `.agents/doctrine/parallelization-doctrine.md`. When drafting tasks,
+lead with parallelization: identify independent task groups, define the shared
+contract that unblocks parallel work, define parallel tracks, then define the
+integration task. Only mark tasks sequential when one genuinely depends on the
+output of another. The default is parallel; sequential is the exception that
+must be justified.
 
 ## When to use
 
@@ -50,6 +49,9 @@ what you cannot verify.
 
 ## Non-Negotiable Behavior
 
+Applies `.agents/doctrine/source-discipline.md`. On top of that, task
+decomposition adds these rules:
+
 - Every task must be specific enough for an AI coding agent to execute
   without asking "what file?" or "where does this go?"
 - Every task must be verifiable — there is a clear "done" state (test
@@ -64,23 +66,11 @@ what you cannot verify.
 
 ## AI-Readable Task Writing Rules
 
-Tasks are read by AI coding agents. Write them to be unambiguous:
-
-- **Name the specific file path** the task touches. Example:
-  `Add toPdf() method to src/services/ExportService.ts` not "add PDF
-  method to export service."
-- **Name the specific API endpoint or interface** when known. Example:
-  `Add POST /api/reports/{id}/export endpoint in src/api/routes/reports.ts`
-- **Name the specific data model or schema** when known. Example:
-  `Add pdf_export_job table migration in src/db/migrations/`
-- **State what exists vs. what is new.** Example: "Extend existing
-  ExportService class with new toPdf() method" not "add PDF export."
-- **Include the test file path** when known. Example: "Add tests in
-  src/services/__tests__/export-service.test.ts covering happy path and
-  timeout."
-- **No pronouns.** "The system" is vague. Name the component.
-- **One task = one PR-sized unit.** If a task would produce more than
-  ~100 lines of code or touch more than 3 files, split it.
+Applies `.agents/doctrine/ai-readable-spec-rules.md` (name specific file
+paths, APIs, data models; state exists vs. new; include test paths; no
+pronouns). On top of that doctrine, tasks add one size rule: **one task =
+one PR-sized unit.** If a task would produce more than ~100 lines of code or
+touch more than 3 files, split it.
 
 ## Task Format
 
@@ -113,22 +103,21 @@ Read the story and its acceptance criteria. For each criterion, identify:
 - What infrastructure work is needed (config, migrations, flags).
 - What test work is needed (unit, integration, e2e).
 
-If the project is brownfield, read the existing code structure to name
-specific files and components. If greenfield, mark new files as "(new)".
+Applies `.agents/doctrine/context-discovery.md`: if brownfield, read the
+existing code structure to name specific files and components; if greenfield,
+mark new files as "(new)".
 
 ### Phase 2 — Parallelization Planning
 
-Before drafting tasks, determine the parallel structure:
+Before drafting tasks, determine the parallel structure per
+`.agents/doctrine/parallelization-doctrine.md`:
 
 1. Identify independent work groups (e.g., backend vs. frontend, or
    independent features within the story).
 2. Identify the shared contract that unblocks parallel work — the
    interface, API spec, or type definition that both tracks need.
-3. Determine if the story is parallelizable:
-   - **Yes**: 2+ independent tracks with a clear integration point, and
-     the story is M or L sized.
-   - **No**: single component, hard sequential dependency, or S sized.
-   - **Partial**: some tracks are independent but others are sequential.
+3. Determine the parallelization decision (Yes / No / Partial) per the
+   doctrine's criteria.
 
 This decision drives the task structure in Phase 3.
 

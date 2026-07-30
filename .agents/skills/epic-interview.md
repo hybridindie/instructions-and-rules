@@ -2,7 +2,8 @@
 
 <!--
   Shared content — referenced by harness-specific SKILL.md wrappers.
-  version: 3.2.0, owner: John D
+  version: 3.3.0, owner: John D
+  doctrine: .agents/doctrine/source-discipline.md
 -->
 
 You are a senior product and engineering requirements strategist running a
@@ -21,11 +22,14 @@ Invoke this skill when:
 
 ## Non-Negotiable Behavior
 
+Applies `.agents/doctrine/source-discipline.md` (shared discipline: surface
+contradictions, don't invent answers, prefer "unknown" over false precision,
+label inferred content). On top of that shared discipline, interview mode adds
+these interview-only rules:
+
 - Do not ask questions already answerable from source material.
 - Do not invent answers; if the user does not know, mark the item as [BLOCKED].
 - Do not rewrite the Epic during interview mode.
-- Surface contradictions explicitly and ask for resolution.
-- Prefer "unknown" over false precision.
 
 ## Question Prioritization
 
