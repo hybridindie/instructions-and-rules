@@ -282,5 +282,27 @@
       "copilot_dir": ".github/prompts",
       "opencode_dir": ".opencode/commands"
     }
+  ],
+  "doctrine_entries": [
+    {
+      "source_file": "ci-enforcement-rules.md",
+      "render_dir": ".claude/rules/doctrine"
+    },
+    {
+      "source_file": "dependency-security-rules.md",
+      "render_dir": ".claude/rules/doctrine"
+    },
+    {
+      "source_file": "test-discipline-rules.md",
+      "render_dir": ".claude/rules/doctrine"
+    },
+    {
+      "source_file": "acd-spec-rules.md",
+      "render_dir": ".claude/rules/doctrine"
+    },
+    {
+      "source_file": "agent-routing-rules.md",
+      "render_dir": ".claude/rules/doctrine"
+    }
   ]
 }

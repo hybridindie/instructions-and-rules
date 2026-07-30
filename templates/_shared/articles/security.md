@@ -19,9 +19,9 @@ paths:
 
 ## Dependency & Configuration Hygiene
 
-- Prefer actively maintained libraries; audit dependencies for CVEs before adoption
-- Validate security-critical config at application startup — reject missing/weak secrets in production
-- Token lifetimes: access ≤ 15min, refresh ≤ 7d in production
+Applies `.claude/rules/doctrine/dependency-security-rules.md` for the
+dependency-audit, lockfile, and token-lifetime rules. The full detailed
+article is `.claude/rules/dependency-security.md`.
 
 ANTI-PATTERNS:
 - Storing plaintext secrets or credentials

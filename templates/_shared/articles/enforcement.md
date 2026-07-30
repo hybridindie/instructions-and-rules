@@ -14,34 +14,25 @@ ANTI-PATTERNS:
 
 ## Enforcement Gates
 
-| Gate | Tool | Blocks Merge On |
-|------|------|-----------------|
-| Workflow Pipeline | `.claude/rules/workflow.md` | Skipped step (no issue, test-after-code, unaddressed PR comment, bundled drive-by fix) |
-| Constitution Checker | `{{BACKEND_PATH}}/scripts/check-constitution.py` | Structure violations |
-| Test Coverage | CI coverage report | Below tier minimums |
-| Suite Health | `.claude/hooks/check-no-skipped-tests.sh` + CI | Any forbidden skip pattern or failing/erroring test |
-| Agent/Rule Drift | `.claude/hooks/check-agent-drift.sh` + PreToolUse hook | Any stack version claim that contradicts `CLAUDE.md` |
-| Type Check | pyright/mypy | New type errors |
-| Lint | ruff | Lint errors |
-| Security | bandit / dependency audit | High severity unresolved |
-| Contracts | contract tests | Schema drift |
-| Test Fidelity Agent *(planned)* | Expert validation agent (CI Stage 1) — activate after ≥20 calibration cycles | Agent-generated test code that omits edge cases or weakens assertions vs. the specification |
-| Architectural Conformance Agent *(planned)* | Expert validation agent (CD Stage 1) — activate after ≥20 calibration cycles | Implementation violating feature description constraints |
+Applies `.claude/rules/doctrine/ci-enforcement-rules.md` for the gates
+table. The gates include: Workflow Pipeline, Constitution Checker, Test
+Coverage, Suite Health, Agent/Rule Drift, Type Check, Lint, Security,
+Contracts, and the planned Test Fidelity and Architectural Conformance
+validation agents.
 
 ## PR Acceptance Checklist
 
 - [ ] Workflow: Issue exists and is referenced (`closes #N`); test was red before the fix; preflight clean; review comments resolved or replied to
 - [ ] Article I: Library isolation (no business logic in routes)
 - [ ] Article II: Services testable in isolation with DI
-- [ ] Article III: Failing test first & coverage per tier
-- [ ] Article III: Zero skipped, xfailed, or failing tests in the suite
+- [ ] Article III: Failing test first & coverage per tier — applies `.claude/rules/doctrine/test-discipline-rules.md` (zero skips/xfail/failures; coverage minimums)
 - [ ] Article IV: Structured error mapping with DomainError
 - [ ] Article V: Async & no blocking/global state
 - [ ] Article VI: OpenAPI documented (Pydantic models)
 - [ ] Article VII: Security (auth, secrets, encryption)
-- [ ] Article VIII: CI green (lint, type, tests, security)
+- [ ] Article VIII: CI green (lint, type, tests, security) — applies `.claude/rules/doctrine/ci-enforcement-rules.md`
 - [ ] Article IX: Spec references present
-- [ ] ACD (agent-generated only): Intent description, BDD scenarios, feature description, and acceptance criteria exist and are human-approved
+- [ ] ACD (agent-generated only): the four spec artifacts (intent, BDD scenarios, feature description, acceptance criteria) exist and are human-approved — applies `.claude/rules/doctrine/acd-spec-rules.md`
 - [ ] ACD (agent-generated only): Commit tagged with agent identity and intent description reference (provenance)
 - [ ] ACD (agent-generated only): Session scope constraint was active; no out-of-scope changes bundled
 

@@ -271,7 +271,7 @@ echo "=== Rendering Shared Articles ==="
 for shared_dir in "$TEMPLATES_DIR/_shared"/*; do
   [[ -d "$shared_dir" ]] || continue
   basename_dir=$(basename "$shared_dir")
-  [[ "$basename_dir" == "agents" || "$basename_dir" == "commands" || "$basename_dir" == "skills" ]] && continue
+  [[ "$basename_dir" == "agents" || "$basename_dir" == "commands" || "$basename_dir" == "skills" || "$basename_dir" == "doctrine" ]] && continue
   for shared in "$shared_dir/"*.md; do
     [[ -f "$shared" ]] || continue
     fname=$(basename "$shared")
@@ -307,6 +307,25 @@ if [[ -d "$TEMPLATES_DIR/_shared/commands" ]]; then
     substitute_placeholders "$shared" "$OUTPUT_DIR/.claude/commands/$fname"
   done
 fi
+
+echo "=== Rendering Shared Doctrine ==="
+# Doctrine files ship into .claude/rules/doctrine/ so articles and agents can
+# reference them by path. They are NOT mirrored to Copilot (referenced by
+# articles/agents, not loaded as path-targeted instructions).
+python3 -c "
+import json, os
+with open('$TEMPLATES_DIR/_shared/mirror-pairs.json') as f:
+    data = json.load(f)
+for entry in data.get('doctrine_entries', []):
+    src = '$TEMPLATES_DIR/_shared/doctrine/' + entry['source_file']
+    render_dir = entry['render_dir']
+    print(f'doctrine_entry|{src}|{render_dir}')
+" | while IFS='|' read -r _ src render_dir; do
+  [[ -f "$src" ]] || { echo "  Missing doctrine source: $src"; continue; }
+  dst_dir="$OUTPUT_DIR/$render_dir"
+  mkdir -p "$dst_dir"
+  substitute_placeholders "$src" "$dst_dir/$(basename "$src")"
+done
 
 echo "=== Mirroring Claude Rules to Copilot Instructions ==="
 python3 "$SCRIPT_DIR/generate-copilot-mirrors.py" "$OUTPUT_DIR" "$TEMPLATES_DIR"

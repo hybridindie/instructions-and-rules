@@ -11,10 +11,10 @@ paths:
 
 ## MUST
 
-- Enforce CI gates: lint, type check, tests, coverage, security scan, dependency audit
-- Fail pipeline on coverage regression or high severity CVE
-- Deterministic build artifacts (pin dependencies / lockfiles committed)
-- Coverage diff per PR (line + branch for changed files)
+Applies `.claude/rules/doctrine/ci-enforcement-rules.md` for the CI MUST
+list (lint, type, tests, coverage, security scan, dependency audit; fail
+on coverage regression or high-severity CVE; deterministic build
+artifacts; coverage diff per PR).
 
 ## SHOULD
 
@@ -35,11 +35,16 @@ For agent-generated changes, each pipeline stage enforces a specific ACD constra
 | Acceptance | BDD scenario tests in production-like environment | User-facing behavior — where BDD scenarios become automated verification |
 | Production | Canary deployment, health checks, SLO monitors with auto-rollback | Final safety net — if agent-generated code degrades production metrics, it rolls back automatically |
 
-**Constraint 8:** While the pipeline is red, agents may only generate changes restoring pipeline health. No feature work until green is restored.
+**Constraint 8** (pipeline-red rule) is defined in
+`.claude/rules/doctrine/ci-enforcement-rules.md`.
 
 ## Expert Validation Agents as Pipeline Gates *(planned — activate after ≥20 calibration cycles)*
 
 Standard tooling covers mechanical checks. Expert validation agents handle what static analysis cannot. These are aspirational gates — run each in parallel with human review for ≥20 cycles and confirm ≥90% agreement before replacing human review.
+
+The Test Fidelity and Architectural Conformance agents are also listed in the
+enforcement gates table (`.claude/rules/doctrine/ci-enforcement-rules.md`).
+The full pipeline-stage mapping of all five planned validation agents:
 
 | Agent | Pipeline Stage | Purpose |
 |-------|---------------|---------|
@@ -55,4 +60,4 @@ Standard tooling covers mechanical checks. Expert validation agents handle what 
 - Flaky tests unresolved > 48h
 - Silent mutation of lockfiles without review
 - Deploying expert validation agents and immediately removing human review (calibrate first)
-- Feature work while the pipeline is red (constraint 8: restore-only work until green)
+- Feature work while the pipeline is red (constraint 8 — see `ci-enforcement-rules.md`)

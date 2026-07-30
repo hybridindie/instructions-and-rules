@@ -257,6 +257,11 @@ def main():
     mirrored = 0
     skipped = 0
     for root, _dirs, files in os.walk(rules_dir):
+        # Doctrine files are referenced by articles/agents, not mirrored to
+        # Copilot as path-targeted instructions. Skip the doctrine/ subdir
+        # entirely so it doesn't print noisy "Skipped" lines.
+        if os.path.relpath(root, start=rules_dir).split(os.sep)[0] == 'doctrine':
+            continue
         for fname in files:
             if not fname.endswith('.md'):
                 continue
