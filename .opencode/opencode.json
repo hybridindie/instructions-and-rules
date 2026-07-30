@@ -36,9 +36,13 @@
       "description": "Decompose a ready Epic into INVEST-compliant user stories.",
       "template": "Load the story-decomposer skill and follow its instructions to decompose the Epic below.\n\nThe skill will direct you to read .agents/skills/story-decomposer.md. Verify the Epic is ready, map ACs to stories, write BDD acceptance criteria, apply INVEST, map dependencies, and assess readiness.\n\n$ARGUMENTS"
     },
-    "task-decomposer": {
-      "description": "Break down a story into AI-executable engineering tasks.",
-      "template": "Load the task-decomposer skill and apply it to the story below.\n\nThe skill will direct you to read .agents/skills/task-decomposer.md. Draft specific tasks with file paths, APIs, and test paths. Lint for specificity and verifiability. Assess AI-parallelization.\n\n$ARGUMENTS"
-    }
+        "task-decomposer": {
+            "description": "Break down a story into AI-executable engineering tasks.",
+            "template": "Load the task-decomposer skill and apply it to the story below.\n\nThe skill will direct you to read .agents/skills/task-decomposer.md. Draft specific tasks with file paths, APIs, and test paths. Lint for specificity and verifiability. Assess AI-parallelization.\n\n$ARGUMENTS"
+        },
+        "harness-eval": {
+            "description": "Evaluate the installed harness against the project's actual stack.",
+            "template": "Read and follow the complete evaluation prompt at docs/harness-eval.md.\n\nThat file is the canonical evaluation workflow. Follow all five phases: stack discovery, stack-fit evaluation, trim, suggest missing rules, and report. Present the plan before executing any edits.\n\n$ARGUMENTS"
+        }
   }
 }

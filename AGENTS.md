@@ -39,6 +39,10 @@ Read these when you need the detail — they are not auto-loaded:
 | task-decomposer | `/task-decomposer` | `.agents/skills/task-decomposer.md` |
 | bootstrap-harness | `/bootstrap-harness` | `.agents/skills/bootstrap-harness.md` |
 
+Post-bootstrap flow: `bootstrap.sh` (render) → `/harness-eval` (trim + suggest)
+→ `/customize-harness` (domain tailoring). The harness-eval prompt lives at
+[`docs/harness-eval.md`](docs/harness-eval.md).
+
 Each skill wrapper is a thin pointer; the model reads the `.agents/` body
 on-demand when the skill is invoked. Doctrine files (`.agents/doctrine/`) are
 read on-demand when a skill references them.

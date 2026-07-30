@@ -178,6 +178,25 @@ in this skill or a template, not user error.
 
 ---
 
+## Phase 4.5 — Harness Evaluation (semantic trim + gap detection)
+
+The render is deterministic — it substitutes placeholders and applies profile
+overlays but cannot read the project's actual code. A `harness-eval` command
+ships into `$TARGET` (at `.claude/commands/harness-eval.md`), backed by the
+evaluation prompt at `$TARGET/docs/harness-eval.md`.
+
+- Load and run the **`harness-eval`** command against `$TARGET`. It reads the
+  project's actual code, evaluates whether each rendered rule fits the stack,
+  trims rules that don't apply, and suggests rules the project needs but
+  doesn't have.
+- Always show the evaluation report and get confirmation before any files are
+  trimmed.
+- This runs **before** `customize-harness` (Phase 5) because trimming and
+  gap-filling should happen before domain tailoring.
+
+If the user skipped the interactive interview (e.g. `install.sh --no-interview`),
+skip this phase too — they can run `/harness-eval` manually later.
+
 ## Phase 5 — Customize (tailor to the project + the user's workflows)
 
 The render produces a generic harness. Now tailor it. The bootstrap ships a
@@ -207,6 +226,7 @@ Created:
   .claude/rules/ (<N>), .claude/agents/ (<N>), .claude/commands/ (<N>)
   .github/instructions/ (<N>), .github/agents/ (<N>), .github/prompts/ (<N>), copilot-instructions.md
   .opencode/skills/ (<N>)
+  docs/harness-eval.md (evaluation prompt for /harness-eval)
 
 Next steps:
   1. cd <TARGET>
@@ -214,6 +234,7 @@ Next steps:
   3. Review CLAUDE.md — confirm the domain tailoring and any placeholder values
   4. Run: bash .claude/hooks/check-primitive-drift.sh
   5. Commit: git add . && git commit -m "chore: install AI harness"
+  6. Re-run /harness-eval after major stack changes to re-trim and detect gaps
 ```
 
 ---

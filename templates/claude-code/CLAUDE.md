@@ -180,6 +180,7 @@ Slash commands. All live in `.claude/commands/`. Run at any point in a session.
 | `/end-session` | Close a session — validate gates, write context summary, commit |
 | `/fix` | Pipeline is red — diagnose and restore green before any feature work resumes |
 | `/migration-check <file>` | Validate a migration file against sql-standards.md before committing |
+| `/harness-eval` | Evaluate the harness against the project's actual stack — trim rules that don't fit, suggest missing rules |
 
 ## Glossary
 

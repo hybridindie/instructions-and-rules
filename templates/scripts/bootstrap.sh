@@ -427,6 +427,13 @@ if [[ -f "$TEMPLATES_DIR/_shared/my-workflows.md" ]]; then
   substitute_placeholders "$TEMPLATES_DIR/_shared/my-workflows.md" "$OUTPUT_DIR/my-workflows.md"
 fi
 
+echo "=== Rendering Harness Eval Prompt ==="
+# Ships the harness-eval prompt into the target project so /harness-eval works.
+mkdir -p "$OUTPUT_DIR/docs"
+substitute_placeholders "$TEMPLATES_DIR/../docs/harness-eval.md" "$OUTPUT_DIR/docs/harness-eval.md" 2>/dev/null || \
+  cp "$TEMPLATES_DIR/../docs/harness-eval.md" "$OUTPUT_DIR/docs/harness-eval.md" 2>/dev/null || \
+  echo "  (harness-eval.md not found in genesis repo — skipping)"
+
 echo "=== Processing Conditional Blocks ==="
 python3 "$SCRIPT_DIR/process-conditionals.py" "$OUTPUT_DIR" \
   "HAS_MLFLOW=$HAS_MLFLOW" \

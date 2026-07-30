@@ -290,6 +290,14 @@
       "copilot_file": "fix.prompt.md",
       "copilot_dir": ".github/prompts",
       "opencode_dir": ".opencode/commands"
+    },
+    {
+      "title": "Harness Eval",
+      "source_file": "harness-eval.md",
+      "claude_dir": ".claude/commands",
+      "copilot_file": "harness-eval.prompt.md",
+      "copilot_dir": ".github/prompts",
+      "opencode_dir": ".opencode/commands"
     }
   ],
   "doctrine_entries": [
