@@ -210,6 +210,15 @@
       "render_dir": ".claude/rules",
       "copilot_description": "Agentic Continuous Delivery: agent delivery contract, ACD constraints, session discipline, and expert validation agents",
       "paths": ["**/*"]
+    },
+    {
+      "article": "X",
+      "title": "Caching Strategy",
+      "claude_file": "caching-strategy.md",
+      "copilot_file": "caching-strategy.instructions.md",
+      "render_dir": ".claude/rules/backend",
+      "copilot_description": "Caching Strategy (Article X): PostgreSQL-only caching via NOLOG tables, materialized views, and HTTP cache headers",
+      "paths": ["{{BACKEND_PATH}}/src/libs/**/*.py", "{{BACKEND_PATH}}/app/**/*.py", "{{BACKEND_PATH}}/migrations/**/*.sql"]
     }
   ],
   "agent_entries": [
